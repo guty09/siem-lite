@@ -26,10 +26,13 @@ public class DetectionService {
             return;
         }
 
+        LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
+
         List<SecurityEvent> failedLogins =
-                securityEventRepository.findBySourceIpAndEventType(
+                securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
                         event.getSourceIp(),
-                        "FAILED_LOGIN"
+                        "FAILED_LOGIN",
+                        fiveMinutesAgo
                 );
 
         if (failedLogins.size() >= 5) {
