@@ -4,8 +4,8 @@ import com.guty.siemlite.dto.LogRequest;
 import com.guty.siemlite.model.SecurityEvent;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import com.guty.siemlite.service.DetectionService;
-import com.guty.siemlite.service.LogParserService;
 import org.springframework.web.bind.annotation.*;
+import com.guty.siemlite.service.LogParserService;
 
 @RestController
 @RequestMapping("/api/logs")
