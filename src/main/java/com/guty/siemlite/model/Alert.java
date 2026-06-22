@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
  *
  * BRUTE_FORCE_ATTEMPT
  * ACCOUNT_COMPROMISE
+ * PRIVILEGE_ESCALATION
  *
  * Alerts are stored in the database and retrieved
  * through GET /api/alerts.
@@ -40,6 +41,7 @@ public class Alert {
      *
      * BRUTE_FORCE_ATTEMPT
      * ACCOUNT_COMPROMISE
+     * PRIVILEGE_ESCALATION
      */
     private String alertType;
 
@@ -57,10 +59,6 @@ public class Alert {
 
     /*
      * Human-readable explanation of the alert.
-     *
-     * Example:
-     *
-     * "Possible brute force attack detected from 192.168.1.60"
      */
     private String message;
 
@@ -68,6 +66,36 @@ public class Alert {
      * Source IP associated with the alert.
      */
     private String sourceIp;
+
+    /*
+     * Alert lifecycle status.
+     *
+     * OPEN
+     * INVESTIGATING
+     * CLOSED
+     */
+    private String status;
+
+    /*
+     * Analyst assigned to investigate the alert.
+     */
+    private String assignedAnalyst;
+
+    /*
+     * Investigation notes.
+     */
+    @Column(length = 2000)
+    private String notes;
+
+    /*
+     * Time when the alert record was created.
+     */
+    private LocalDateTime createdAt;
+
+    /*
+     * Time when the alert record was last updated.
+     */
+    private LocalDateTime updatedAt;
 
     /*
      * Default constructor required by JPA.
@@ -89,93 +117,106 @@ public class Alert {
         this.severity = severity;
         this.message = message;
         this.sourceIp = sourceIp;
+
+        /*
+         * Default alert lifecycle values.
+         */
+        this.status = "OPEN";
+        this.assignedAnalyst = null;
+        this.notes = null;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     // ===== GETTERS =====
 
-    /*
-     * Returns alert ID.
-     */
     public Long getId() {
         return id;
     }
 
-    /*
-     * Returns alert timestamp.
-     */
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
-    /*
-     * Returns alert type.
-     */
     public String getAlertType() {
         return alertType;
     }
 
-    /*
-     * Returns severity.
-     */
     public String getSeverity() {
         return severity;
     }
 
-    /*
-     * Returns alert message.
-     */
     public String getMessage() {
         return message;
     }
 
-    /*
-     * Returns source IP.
-     */
     public String getSourceIp() {
         return sourceIp;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public String getAssignedAnalyst() {
+        return assignedAnalyst;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
     // ===== SETTERS =====
 
-    /*
-     * Sets alert ID.
-     */
     public void setId(Long id) {
         this.id = id;
     }
 
-    /*
-     * Sets timestamp.
-     */
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
 
-    /*
-     * Sets alert type.
-     */
     public void setAlertType(String alertType) {
         this.alertType = alertType;
     }
 
-    /*
-     * Sets severity.
-     */
     public void setSeverity(String severity) {
         this.severity = severity;
     }
 
-    /*
-     * Sets alert message.
-     */
     public void setMessage(String message) {
         this.message = message;
     }
 
-    /*
-     * Sets source IP.
-     */
     public void setSourceIp(String sourceIp) {
         this.sourceIp = sourceIp;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setAssignedAnalyst(String assignedAnalyst) {
+        this.assignedAnalyst = assignedAnalyst;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

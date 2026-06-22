@@ -44,6 +44,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  *         ↓
  * H2 Database
  *         ↓
+ * GET /api/events
  * GET /api/alerts
  */
 @SpringBootApplication
@@ -52,14 +53,12 @@ public class SiemLiteApplication {
     /*
      * Application entry point.
      *
-     * Java execution starts here.
-     *
      * Spring Boot initializes:
      *
      * - Controllers
      * - Services
      * - Repositories
-     * - Database
+     * - H2 Database
      * - Embedded Tomcat server
      */
     public static void main(String[] args) {
@@ -69,5 +68,4 @@ public class SiemLiteApplication {
          */
         SpringApplication.run(SiemLiteApplication.class, args);
     }
-
 }
