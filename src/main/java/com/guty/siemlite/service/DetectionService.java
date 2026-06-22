@@ -54,7 +54,7 @@ public class DetectionService {
         /*
          * Define the correlation window.
          *
-         * Current rule window:
+         * Current standard rule window:
          * last 5 minutes
          */
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
@@ -63,9 +63,11 @@ public class DetectionService {
          * FAILED_LOGIN events can indicate:
          *
          * - Brute force attack
+         * - Aggressive brute force attack
          * - Password spray attack
          */
         if ("FAILED_LOGIN".equals(event.getEventType())) {
+            detectAggressiveBruteForce(event);
             detectBruteForce(event, fiveMinutesAgo);
             detectPasswordSpray(event, fiveMinutesAgo);
         }
@@ -99,6 +101,22 @@ public class DetectionService {
                                   LocalDateTime fiveMinutesAgo) {
 
         /*
+         * Alert hierarchy:
+         *
+         * If a CRITICAL aggressive brute force alert already exists,
+         * do not create the lower-severity HIGH brute force alert.
+         */
+        boolean aggressiveExists =
+                alertRepository.existsBySourceIpAndAlertType(
+                        event.getSourceIp(),
+                        "BRUTE_FORCE_AGGRESSIVE"
+                );
+
+        if (aggressiveExists) {
+            return;
+        }
+
+        /*
          * Find all recent failed login events
          * from the same source IP.
          */
@@ -121,8 +139,8 @@ public class DetectionService {
              * This prevents duplicate alerts from being created
              * every time another failed login arrives.
              */
-            List<Alert> existingAlerts =
-                    alertRepository.findBySourceIpAndAlertType(
+            boolean bruteForceExists =
+                    alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
                             "BRUTE_FORCE_ATTEMPT"
                     );
@@ -130,7 +148,7 @@ public class DetectionService {
             /*
              * Only create a new alert if one does not already exist.
              */
-            if (existingAlerts.isEmpty()) {
+            if (!bruteForceExists) {
 
                 Alert alert = new Alert(
                         LocalDateTime.now(),
@@ -201,13 +219,13 @@ public class DetectionService {
              * Prevent duplicate ACCOUNT_COMPROMISE alerts
              * for the same source IP.
              */
-            List<Alert> existingAlerts =
-                    alertRepository.findBySourceIpAndAlertType(
+            boolean compromiseExists =
+                    alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
                             "ACCOUNT_COMPROMISE"
                     );
 
-            if (existingAlerts.isEmpty()) {
+            if (!compromiseExists) {
 
                 Alert alert = new Alert(
                         LocalDateTime.now(),
@@ -242,14 +260,6 @@ public class DetectionService {
      *
      * PASSWORD_SPRAY
      * Severity: HIGH
-     *
-     * Example:
-     *
-     * 192.168.1.90 -> admin
-     * 192.168.1.90 -> root
-     * 192.168.1.90 -> john
-     * 192.168.1.90 -> maria
-     * 192.168.1.90 -> test
      */
     private void detectPasswordSpray(SecurityEvent event,
                                      LocalDateTime fiveMinutesAgo) {
@@ -286,13 +296,13 @@ public class DetectionService {
              * Prevent duplicate PASSWORD_SPRAY alerts
              * for the same source IP.
              */
-            List<Alert> existingAlerts =
-                    alertRepository.findBySourceIpAndAlertType(
+            boolean passwordSprayExists =
+                    alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
                             "PASSWORD_SPRAY"
                     );
 
-            if (existingAlerts.isEmpty()) {
+            if (!passwordSprayExists) {
 
                 Alert alert = new Alert(
                         LocalDateTime.now(),
@@ -301,6 +311,77 @@ public class DetectionService {
                         "Possible password spray attack detected from "
                                 + event.getSourceIp()
                                 + " against multiple usernames",
+                        event.getSourceIp()
+                );
+
+                /*
+                 * Save the alert to the database.
+                 */
+                alertRepository.save(alert);
+            }
+        }
+    }
+
+    // ============================================================
+    // RULE 4: AGGRESSIVE BRUTE FORCE DETECTION
+    // ============================================================
+
+    /*
+     * Rule:
+     *
+     * 20 FAILED_LOGIN events
+     * from the same source IP
+     * within 1 minute
+     *
+     * =
+     *
+     * BRUTE_FORCE_AGGRESSIVE
+     * Severity: CRITICAL
+     */
+    private void detectAggressiveBruteForce(SecurityEvent event) {
+
+        /*
+         * Define a shorter correlation window.
+         *
+         * This detects a much faster and more aggressive attack pattern
+         * than the standard 5-minute brute force rule.
+         */
+        LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
+
+        /*
+         * Find all recent failed login events
+         * from the same source IP within the last minute.
+         */
+        List<SecurityEvent> failedLogins =
+                securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
+                        event.getSourceIp(),
+                        "FAILED_LOGIN",
+                        oneMinuteAgo
+                );
+
+        /*
+         * Trigger the rule if 20 or more failed logins
+         * were found in the 1-minute window.
+         */
+        if (failedLogins.size() >= 20) {
+
+            /*
+             * Prevent duplicate BRUTE_FORCE_AGGRESSIVE alerts
+             * for the same source IP.
+             */
+            boolean aggressiveExists =
+                    alertRepository.existsBySourceIpAndAlertType(
+                            event.getSourceIp(),
+                            "BRUTE_FORCE_AGGRESSIVE"
+                    );
+
+            if (!aggressiveExists) {
+
+                Alert alert = new Alert(
+                        LocalDateTime.now(),
+                        "BRUTE_FORCE_AGGRESSIVE",
+                        "CRITICAL",
+                        "Aggressive brute force attack detected from " + event.getSourceIp(),
                         event.getSourceIp()
                 );
 

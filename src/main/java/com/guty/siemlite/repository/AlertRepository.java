@@ -52,4 +52,23 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
             String sourceIp,
             String alertType);
 
+    /*
+     * Returns true if an alert already exists
+     * for the specified source IP and alert type.
+     *
+     * Example:
+     *
+     * sourceIp = "192.168.1.60"
+     * alertType = "BRUTE_FORCE_AGGRESSIVE"
+     *
+     * Useful for:
+     *
+     * - Duplicate prevention
+     * - Alert hierarchy
+     * - Suppressing lower-severity alerts
+     * - Future alert lifecycle management
+     */
+    boolean existsBySourceIpAndAlertType(
+            String sourceIp,
+            String alertType);
 }
