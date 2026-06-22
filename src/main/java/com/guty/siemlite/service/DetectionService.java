@@ -50,6 +50,10 @@ public class DetectionService {
             detectAccountCompromise(event, fiveMinutesAgo);
         }
 
+        if ("ADMIN_COMMAND_EXECUTED".equals(event.getEventType())) {
+            detectPrivilegeEscalation(event, fiveMinutesAgo);
+        }
+
         if ("CONNECTION_ATTEMPT".equals(event.getEventType())) {
             detectPortScan(event);
         }
@@ -59,13 +63,6 @@ public class DetectionService {
     // RULE 1: BRUTE FORCE DETECTION
     // ============================================================
 
-    /*
-     * Rule:
-     * 5 FAILED_LOGIN events from the same source IP within 5 minutes
-     * =
-     * BRUTE_FORCE_ATTEMPT
-     * Severity: HIGH
-     */
     private void detectBruteForce(SecurityEvent event,
                                   LocalDateTime fiveMinutesAgo) {
 
@@ -113,14 +110,6 @@ public class DetectionService {
     // RULE 2: ACCOUNT COMPROMISE DETECTION
     // ============================================================
 
-    /*
-     * Rule:
-     * 5 FAILED_LOGIN events from same IP and username within 5 minutes
-     * followed by 1 SUCCESSFUL_LOGIN from same IP and username
-     * =
-     * ACCOUNT_COMPROMISE
-     * Severity: CRITICAL
-     */
     private void detectAccountCompromise(SecurityEvent event,
                                          LocalDateTime fiveMinutesAgo) {
 
@@ -161,14 +150,6 @@ public class DetectionService {
     // RULE 3: PASSWORD SPRAY DETECTION
     // ============================================================
 
-    /*
-     * Rule:
-     * 1 source IP targets 5 different usernames with FAILED_LOGIN events
-     * within 5 minutes
-     * =
-     * PASSWORD_SPRAY
-     * Severity: HIGH
-     */
     private void detectPasswordSpray(SecurityEvent event,
                                      LocalDateTime fiveMinutesAgo) {
 
@@ -213,13 +194,6 @@ public class DetectionService {
     // RULE 4: AGGRESSIVE BRUTE FORCE DETECTION
     // ============================================================
 
-    /*
-     * Rule:
-     * 20 FAILED_LOGIN events from the same source IP within 1 minute
-     * =
-     * BRUTE_FORCE_AGGRESSIVE
-     * Severity: CRITICAL
-     */
     private void detectAggressiveBruteForce(SecurityEvent event) {
 
         LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
@@ -258,17 +232,6 @@ public class DetectionService {
     // RULE 5: PORT SCAN DETECTION
     // ============================================================
 
-    /*
-     * Rule:
-     * 1 source IP connects to 10 different destination ports
-     * within 30 seconds
-     * =
-     * PORT_SCAN
-     * Severity: HIGH
-     *
-     * MITRE ATT&CK:
-     * T1046 - Network Service Discovery
-     */
     private void detectPortScan(SecurityEvent event) {
 
         LocalDateTime thirtySecondsAgo = LocalDateTime.now().minusSeconds(30);
@@ -301,6 +264,70 @@ public class DetectionService {
                         "HIGH",
                         "Possible port scan detected from " + event.getSourceIp()
                                 + " targeting multiple destination ports",
+                        event.getSourceIp()
+                );
+
+                alertRepository.save(alert);
+            }
+        }
+    }
+
+    // ============================================================
+    // RULE 6: PRIVILEGE ESCALATION DETECTION
+    // ============================================================
+
+    /*
+     * Rule:
+     * 5 FAILED_LOGIN events from same IP and username within 5 minutes
+     * followed by 1 SUCCESSFUL_LOGIN from same IP and username
+     * followed by 1 ADMIN_COMMAND_EXECUTED from same IP and username
+     * =
+     * PRIVILEGE_ESCALATION
+     * Severity: CRITICAL
+     *
+     * MITRE ATT&CK:
+     * T1068 - Exploitation for Privilege Escalation
+     */
+    private void detectPrivilegeEscalation(SecurityEvent event,
+                                           LocalDateTime fiveMinutesAgo) {
+
+        List<SecurityEvent> failedLogins =
+                securityEventRepository
+                        .findBySourceIpAndUsernameAndEventTypeAndTimestampAfter(
+                                event.getSourceIp(),
+                                event.getUsername(),
+                                "FAILED_LOGIN",
+                                fiveMinutesAgo
+                        );
+
+        List<SecurityEvent> successfulLogins =
+                securityEventRepository
+                        .findBySourceIpAndUsernameAndEventTypeAndTimestampAfter(
+                                event.getSourceIp(),
+                                event.getUsername(),
+                                "SUCCESSFUL_LOGIN",
+                                fiveMinutesAgo
+                        );
+
+        if (failedLogins.size() >= 5 && !successfulLogins.isEmpty()) {
+
+            boolean privilegeEscalationExists =
+                    alertRepository.existsBySourceIpAndAlertType(
+                            event.getSourceIp(),
+                            "PRIVILEGE_ESCALATION"
+                    );
+
+            if (!privilegeEscalationExists) {
+
+                Alert alert = new Alert(
+                        LocalDateTime.now(),
+                        "PRIVILEGE_ESCALATION",
+                        "CRITICAL",
+                        "Possible privilege escalation after account compromise for user "
+                                + event.getUsername()
+                                + " from "
+                                + event.getSourceIp()
+                                + " - MITRE ATT&CK T1068",
                         event.getSourceIp()
                 );
 
