@@ -22,21 +22,9 @@ import java.util.stream.Collectors;
 @Service
 public class DetectionService {
 
-    /*
-     * Repository used to search stored security events.
-     */
     private final SecurityEventRepository securityEventRepository;
-
-    /*
-     * Repository used to save and search generated alerts.
-     */
     private final AlertRepository alertRepository;
 
-    /*
-     * Constructor injection.
-     *
-     * Spring automatically provides the repositories.
-     */
     public DetectionService(SecurityEventRepository securityEventRepository,
                             AlertRepository alertRepository) {
         this.securityEventRepository = securityEventRepository;
@@ -46,38 +34,24 @@ public class DetectionService {
     /*
      * Main analysis method.
      *
-     * This method is called every time a new SecurityEvent
-     * is created from an incoming log.
+     * Called every time a new SecurityEvent is created.
      */
     public void analyze(SecurityEvent event) {
 
-        /*
-         * Define the correlation window.
-         *
-         * Current standard rule window:
-         * last 5 minutes
-         */
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
 
-        /*
-         * FAILED_LOGIN events can indicate:
-         *
-         * - Brute force attack
-         * - Aggressive brute force attack
-         * - Password spray attack
-         */
         if ("FAILED_LOGIN".equals(event.getEventType())) {
             detectAggressiveBruteForce(event);
             detectBruteForce(event, fiveMinutesAgo);
             detectPasswordSpray(event, fiveMinutesAgo);
         }
 
-        /*
-         * SUCCESSFUL_LOGIN events can indicate compromise
-         * if multiple failed attempts happened before success.
-         */
         if ("SUCCESSFUL_LOGIN".equals(event.getEventType())) {
             detectAccountCompromise(event, fiveMinutesAgo);
+        }
+
+        if ("CONNECTION_ATTEMPT".equals(event.getEventType())) {
+            detectPortScan(event);
         }
     }
 
@@ -87,25 +61,14 @@ public class DetectionService {
 
     /*
      * Rule:
-     *
-     * 5 FAILED_LOGIN events
-     * from the same source IP
-     * within 5 minutes
-     *
+     * 5 FAILED_LOGIN events from the same source IP within 5 minutes
      * =
-     *
      * BRUTE_FORCE_ATTEMPT
      * Severity: HIGH
      */
     private void detectBruteForce(SecurityEvent event,
                                   LocalDateTime fiveMinutesAgo) {
 
-        /*
-         * Alert hierarchy:
-         *
-         * If a CRITICAL aggressive brute force alert already exists,
-         * do not create the lower-severity HIGH brute force alert.
-         */
         boolean aggressiveExists =
                 alertRepository.existsBySourceIpAndAlertType(
                         event.getSourceIp(),
@@ -116,10 +79,6 @@ public class DetectionService {
             return;
         }
 
-        /*
-         * Find all recent failed login events
-         * from the same source IP.
-         */
         List<SecurityEvent> failedLogins =
                 securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
                         event.getSourceIp(),
@@ -127,27 +86,14 @@ public class DetectionService {
                         fiveMinutesAgo
                 );
 
-        /*
-         * Trigger the rule if 5 or more failed logins
-         * were found in the time window.
-         */
         if (failedLogins.size() >= 5) {
 
-            /*
-             * Check if this alert already exists.
-             *
-             * This prevents duplicate alerts from being created
-             * every time another failed login arrives.
-             */
             boolean bruteForceExists =
                     alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
                             "BRUTE_FORCE_ATTEMPT"
                     );
 
-            /*
-             * Only create a new alert if one does not already exist.
-             */
             if (!bruteForceExists) {
 
                 Alert alert = new Alert(
@@ -158,9 +104,6 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                /*
-                 * Save the alert to the database.
-                 */
                 alertRepository.save(alert);
             }
         }
@@ -172,34 +115,15 @@ public class DetectionService {
 
     /*
      * Rule:
-     *
-     * 5 FAILED_LOGIN events
-     * from the same source IP
-     * against the same username
-     * within 5 minutes
-     *
-     * followed by:
-     *
-     * 1 SUCCESSFUL_LOGIN
-     * from the same source IP
-     * against the same username
-     *
+     * 5 FAILED_LOGIN events from same IP and username within 5 minutes
+     * followed by 1 SUCCESSFUL_LOGIN from same IP and username
      * =
-     *
      * ACCOUNT_COMPROMISE
      * Severity: CRITICAL
      */
     private void detectAccountCompromise(SecurityEvent event,
                                          LocalDateTime fiveMinutesAgo) {
 
-        /*
-         * Find recent failed logins that match:
-         *
-         * - same source IP
-         * - same username
-         * - event type FAILED_LOGIN
-         * - within the last 5 minutes
-         */
         List<SecurityEvent> failedLogins =
                 securityEventRepository
                         .findBySourceIpAndUsernameAndEventTypeAndTimestampAfter(
@@ -209,16 +133,8 @@ public class DetectionService {
                                 fiveMinutesAgo
                         );
 
-        /*
-         * If there were 5 or more failed logins before
-         * this successful login, treat it as possible compromise.
-         */
         if (failedLogins.size() >= 5) {
 
-            /*
-             * Prevent duplicate ACCOUNT_COMPROMISE alerts
-             * for the same source IP.
-             */
             boolean compromiseExists =
                     alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
@@ -236,9 +152,6 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                /*
-                 * Save the alert to the database.
-                 */
                 alertRepository.save(alert);
             }
         }
@@ -250,24 +163,15 @@ public class DetectionService {
 
     /*
      * Rule:
-     *
-     * 1 source IP
-     * targets 5 different usernames
-     * with FAILED_LOGIN events
+     * 1 source IP targets 5 different usernames with FAILED_LOGIN events
      * within 5 minutes
-     *
      * =
-     *
      * PASSWORD_SPRAY
      * Severity: HIGH
      */
     private void detectPasswordSpray(SecurityEvent event,
                                      LocalDateTime fiveMinutesAgo) {
 
-        /*
-         * Find recent failed login events
-         * from the same source IP.
-         */
         List<SecurityEvent> failedLogins =
                 securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
                         event.getSourceIp(),
@@ -275,27 +179,13 @@ public class DetectionService {
                         fiveMinutesAgo
                 );
 
-        /*
-         * Extract usernames from the failed login events.
-         *
-         * A Set stores only unique values, so duplicate usernames
-         * are counted once.
-         */
         Set<String> uniqueUsernames =
                 failedLogins.stream()
                         .map(SecurityEvent::getUsername)
                         .collect(Collectors.toSet());
 
-        /*
-         * Trigger the rule if the same IP has targeted
-         * 5 or more different usernames.
-         */
         if (uniqueUsernames.size() >= 5) {
 
-            /*
-             * Prevent duplicate PASSWORD_SPRAY alerts
-             * for the same source IP.
-             */
             boolean passwordSprayExists =
                     alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
@@ -314,9 +204,6 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                /*
-                 * Save the alert to the database.
-                 */
                 alertRepository.save(alert);
             }
         }
@@ -328,30 +215,15 @@ public class DetectionService {
 
     /*
      * Rule:
-     *
-     * 20 FAILED_LOGIN events
-     * from the same source IP
-     * within 1 minute
-     *
+     * 20 FAILED_LOGIN events from the same source IP within 1 minute
      * =
-     *
      * BRUTE_FORCE_AGGRESSIVE
      * Severity: CRITICAL
      */
     private void detectAggressiveBruteForce(SecurityEvent event) {
 
-        /*
-         * Define a shorter correlation window.
-         *
-         * This detects a much faster and more aggressive attack pattern
-         * than the standard 5-minute brute force rule.
-         */
         LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
 
-        /*
-         * Find all recent failed login events
-         * from the same source IP within the last minute.
-         */
         List<SecurityEvent> failedLogins =
                 securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
                         event.getSourceIp(),
@@ -359,16 +231,8 @@ public class DetectionService {
                         oneMinuteAgo
                 );
 
-        /*
-         * Trigger the rule if 20 or more failed logins
-         * were found in the 1-minute window.
-         */
         if (failedLogins.size() >= 20) {
 
-            /*
-             * Prevent duplicate BRUTE_FORCE_AGGRESSIVE alerts
-             * for the same source IP.
-             */
             boolean aggressiveExists =
                     alertRepository.existsBySourceIpAndAlertType(
                             event.getSourceIp(),
@@ -385,9 +249,61 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                /*
-                 * Save the alert to the database.
-                 */
+                alertRepository.save(alert);
+            }
+        }
+    }
+
+    // ============================================================
+    // RULE 5: PORT SCAN DETECTION
+    // ============================================================
+
+    /*
+     * Rule:
+     * 1 source IP connects to 10 different destination ports
+     * within 30 seconds
+     * =
+     * PORT_SCAN
+     * Severity: HIGH
+     *
+     * MITRE ATT&CK:
+     * T1046 - Network Service Discovery
+     */
+    private void detectPortScan(SecurityEvent event) {
+
+        LocalDateTime thirtySecondsAgo = LocalDateTime.now().minusSeconds(30);
+
+        List<SecurityEvent> connectionAttempts =
+                securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
+                        event.getSourceIp(),
+                        "CONNECTION_ATTEMPT",
+                        thirtySecondsAgo
+                );
+
+        Set<Integer> uniquePorts =
+                connectionAttempts.stream()
+                        .map(SecurityEvent::getDestinationPort)
+                        .collect(Collectors.toSet());
+
+        if (uniquePorts.size() >= 10) {
+
+            boolean portScanExists =
+                    alertRepository.existsBySourceIpAndAlertType(
+                            event.getSourceIp(),
+                            "PORT_SCAN"
+                    );
+
+            if (!portScanExists) {
+
+                Alert alert = new Alert(
+                        LocalDateTime.now(),
+                        "PORT_SCAN",
+                        "HIGH",
+                        "Possible port scan detected from " + event.getSourceIp()
+                                + " targeting multiple destination ports",
+                        event.getSourceIp()
+                );
+
                 alertRepository.save(alert);
             }
         }

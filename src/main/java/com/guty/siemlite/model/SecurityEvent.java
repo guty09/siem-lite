@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  *
  * FAILED_LOGIN
  * SUCCESSFUL_LOGIN
+ * CONNECTION_ATTEMPT
  *
  * Raw logs are transformed into SecurityEvent objects
  * before correlation rules analyze them.
@@ -40,10 +41,12 @@ public class SecurityEvent {
     /*
      * Username involved in the event.
      *
-     * Example:
+     * Examples:
      * root
      * admin
      * jsmith
+     *
+     * May be null for network events.
      */
     private String username;
 
@@ -53,6 +56,7 @@ public class SecurityEvent {
      * Examples:
      * FAILED_LOGIN
      * SUCCESSFUL_LOGIN
+     * CONNECTION_ATTEMPT
      */
     private String eventType;
 
@@ -60,6 +64,19 @@ public class SecurityEvent {
      * Original raw log line received by the SIEM.
      */
     private String rawLog;
+
+    /*
+     * Destination port involved in a network connection.
+     *
+     * Examples:
+     * 22
+     * 80
+     * 443
+     *
+     * Used for port scan detection.
+     * May be null for authentication events.
+     */
+    private Integer destinationPort;
 
     /*
      * Default constructor required by JPA.
@@ -74,16 +91,20 @@ public class SecurityEvent {
                          String sourceIp,
                          String username,
                          String eventType,
-                         String rawLog) {
+                         String rawLog,
+                         Integer destinationPort) {
 
         this.timestamp = timestamp;
         this.sourceIp = sourceIp;
         this.username = username;
         this.eventType = eventType;
         this.rawLog = rawLog;
+        this.destinationPort = destinationPort;
     }
 
-    // ===== GETTERS =====
+    // ==================================================
+    // GETTERS
+    // ==================================================
 
     public Long getId() {
         return id;
@@ -109,7 +130,13 @@ public class SecurityEvent {
         return rawLog;
     }
 
-    // ===== SETTERS =====
+    public Integer getDestinationPort() {
+        return destinationPort;
+    }
+
+    // ==================================================
+    // SETTERS
+    // ==================================================
 
     public void setId(Long id) {
         this.id = id;
@@ -133,5 +160,9 @@ public class SecurityEvent {
 
     public void setRawLog(String rawLog) {
         this.rawLog = rawLog;
+    }
+
+    public void setDestinationPort(Integer destinationPort) {
+        this.destinationPort = destinationPort;
     }
 }

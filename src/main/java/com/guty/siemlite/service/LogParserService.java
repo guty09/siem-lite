@@ -11,19 +11,11 @@ import java.util.regex.Pattern;
  * Responsible for converting raw log lines
  * into structured SecurityEvent objects.
  *
- * Input:
+ * Supported event types:
  *
- * Failed password for root from 192.168.1.60
- *
- * Output:
- *
- * timestamp
- * sourceIp
- * username
- * eventType
- * rawLog
- *
- * This process is called parsing.
+ * FAILED_LOGIN
+ * SUCCESSFUL_LOGIN
+ * CONNECTION_ATTEMPT
  */
 @Service
 public class LogParserService {
@@ -35,111 +27,104 @@ public class LogParserService {
      * Returns:
      *
      * SecurityEvent if recognized
-     *
      * null if unsupported
      */
     public SecurityEvent parseLog(String logLine) {
 
         /*
-         * Regex pattern used to recognize
-         * failed SSH login attempts.
+         * Failed SSH login pattern.
          *
          * Example:
-         *
-         * Failed password for root from 192.168.1.60
+         * Failed password for root from 192.168.1.60 port 50000 ssh2
          */
         Pattern failedPattern =
                 Pattern.compile("Failed password for (\\w+) from ([0-9.]+)");
 
-        /*
-         * Matcher compares the log line
-         * against the regex pattern.
-         */
         Matcher failedMatcher = failedPattern.matcher(logLine);
 
-        /*
-         * If a match is found,
-         * extract username and IP address.
-         */
         if (failedMatcher.find()) {
 
-            /*
-             * Group(1) = username
-             *
-             * Example:
-             * root
-             */
             String username = failedMatcher.group(1);
-
-            /*
-             * Group(2) = source IP
-             *
-             * Example:
-             * 192.168.1.60
-             */
             String ip = failedMatcher.group(2);
 
             /*
-             * Create a FAILED_LOGIN event.
+             * Authentication events do not use destinationPort,
+             * so we pass null.
              */
             return new SecurityEvent(
                     LocalDateTime.now(),
                     ip,
                     username,
                     "FAILED_LOGIN",
-                    logLine
+                    logLine,
+                    null
             );
         }
 
         /*
-         * Regex pattern used to recognize
-         * successful SSH logins.
+         * Successful SSH login pattern.
          *
          * Example:
-         *
-         * Accepted password for root from 192.168.1.60
+         * Accepted password for root from 192.168.1.60 port 50000 ssh2
          */
         Pattern successPattern =
                 Pattern.compile("Accepted password for (\\w+) from ([0-9.]+)");
 
-        /*
-         * Match against successful login pattern.
-         */
         Matcher successMatcher = successPattern.matcher(logLine);
 
-        /*
-         * If a successful login is found,
-         * create a SUCCESSFUL_LOGIN event.
-         */
         if (successMatcher.find()) {
 
-            /*
-             * Extract username.
-             */
             String username = successMatcher.group(1);
-
-            /*
-             * Extract source IP.
-             */
             String ip = successMatcher.group(2);
 
             /*
-             * Create a SUCCESSFUL_LOGIN event.
+             * Authentication events do not use destinationPort,
+             * so we pass null.
              */
             return new SecurityEvent(
                     LocalDateTime.now(),
                     ip,
                     username,
                     "SUCCESSFUL_LOGIN",
-                    logLine
+                    logLine,
+                    null
+            );
+        }
+
+        /*
+         * Network connection attempt pattern.
+         *
+         * Example:
+         * Connection attempt from 192.168.1.100 to port 22
+         *
+         * This will be used later for PORT_SCAN detection.
+         */
+        Pattern connectionPattern =
+                Pattern.compile("Connection attempt from ([0-9.]+) to port (\\d+)");
+
+        Matcher connectionMatcher = connectionPattern.matcher(logLine);
+
+        if (connectionMatcher.find()) {
+
+            String ip = connectionMatcher.group(1);
+            Integer destinationPort = Integer.parseInt(connectionMatcher.group(2));
+
+            /*
+             * Network events do not involve a username,
+             * so username is null.
+             */
+            return new SecurityEvent(
+                    LocalDateTime.now(),
+                    ip,
+                    null,
+                    "CONNECTION_ATTEMPT",
+                    logLine,
+                    destinationPort
             );
         }
 
         /*
          * Unknown log format.
-         *
-         * Returning null tells the caller
-         * that parsing failed.
          */
         return null;
     }
