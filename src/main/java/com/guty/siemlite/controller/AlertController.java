@@ -2,53 +2,31 @@ package com.guty.siemlite.controller;
 
 import com.guty.siemlite.model.Alert;
 import com.guty.siemlite.repository.AlertRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-/*
- * REST controller responsible for alert-related endpoints.
- *
- * Clients can retrieve and update generated alerts through:
- *
- * GET /api/alerts
- * PUT /api/alerts/{id}/assign?analyst=Guty
- * PUT /api/alerts/{id}/status?status=INVESTIGATING
- * PUT /api/alerts/{id}/notes?note=Confirmed investigation
- */
 @RestController
 @RequestMapping("/api/alerts")
+@Tag(name = "Alerts", description = "Alert management and analyst workflow")
 public class AlertController {
 
-    /*
-     * Repository used to access the Alert table.
-     */
     private final AlertRepository alertRepository;
 
-    /*
-     * Constructor injection.
-     * Spring automatically provides AlertRepository.
-     */
     public AlertController(AlertRepository alertRepository) {
         this.alertRepository = alertRepository;
     }
 
-    /*
-     * GET /api/alerts
-     *
-     * Returns every alert stored in the database.
-     */
+    @Operation(summary = "Retrieve all alerts")
     @GetMapping
     public List<Alert> getAlerts() {
         return alertRepository.findAll();
     }
 
-    /*
-     * PUT /api/alerts/{id}/assign?analyst=Guty
-     *
-     * Assigns an analyst to an alert.
-     */
+    @Operation(summary = "Assign analyst to an alert")
     @PutMapping("/{id}/assign")
     public Alert assignAnalyst(@PathVariable Long id,
                                @RequestParam String analyst) {
@@ -62,17 +40,7 @@ public class AlertController {
         return alertRepository.save(alert);
     }
 
-    /*
-     * PUT /api/alerts/{id}/status?status=INVESTIGATING
-     *
-     * Updates the lifecycle status of an alert.
-     *
-     * Valid statuses:
-     *
-     * OPEN
-     * INVESTIGATING
-     * CLOSED
-     */
+    @Operation(summary = "Change alert status")
     @PutMapping("/{id}/status")
     public Alert updateStatus(@PathVariable Long id,
                               @RequestParam String status) {
@@ -92,11 +60,7 @@ public class AlertController {
         return alertRepository.save(alert);
     }
 
-    /*
-     * PUT /api/alerts/{id}/notes?note=Confirmed brute force followed by privilege escalation
-     *
-     * Adds or replaces investigation notes on an alert.
-     */
+    @Operation(summary = "Add investigation notes to an alert")
     @PutMapping("/{id}/notes")
     public Alert updateNotes(@PathVariable Long id,
                              @RequestParam String note) {
