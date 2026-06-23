@@ -11,14 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/*
- * DetectionService is the SIEM correlation engine.
- *
- * It receives parsed SecurityEvent objects and checks them
- * against detection rules.
- *
- * If suspicious behavior is detected, it creates Alert records.
- */
 @Service
 public class DetectionService {
 
@@ -31,11 +23,6 @@ public class DetectionService {
         this.alertRepository = alertRepository;
     }
 
-    /*
-     * Main analysis method.
-     *
-     * Called every time a new SecurityEvent is created.
-     */
     public void analyze(SecurityEvent event) {
 
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
@@ -58,10 +45,6 @@ public class DetectionService {
             detectPortScan(event);
         }
     }
-
-    // ============================================================
-    // RULE 1: BRUTE FORCE DETECTION
-    // ============================================================
 
     private void detectBruteForce(SecurityEvent event,
                                   LocalDateTime fiveMinutesAgo) {
@@ -101,14 +84,10 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
             }
         }
     }
-
-    // ============================================================
-    // RULE 2: ACCOUNT COMPROMISE DETECTION
-    // ============================================================
 
     private void detectAccountCompromise(SecurityEvent event,
                                          LocalDateTime fiveMinutesAgo) {
@@ -141,14 +120,10 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
             }
         }
     }
-
-    // ============================================================
-    // RULE 3: PASSWORD SPRAY DETECTION
-    // ============================================================
 
     private void detectPasswordSpray(SecurityEvent event,
                                      LocalDateTime fiveMinutesAgo) {
@@ -185,14 +160,10 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
             }
         }
     }
-
-    // ============================================================
-    // RULE 4: AGGRESSIVE BRUTE FORCE DETECTION
-    // ============================================================
 
     private void detectAggressiveBruteForce(SecurityEvent event) {
 
@@ -223,14 +194,10 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
             }
         }
     }
-
-    // ============================================================
-    // RULE 5: PORT SCAN DETECTION
-    // ============================================================
 
     private void detectPortScan(SecurityEvent event) {
 
@@ -267,27 +234,11 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
             }
         }
     }
 
-    // ============================================================
-    // RULE 6: PRIVILEGE ESCALATION DETECTION
-    // ============================================================
-
-    /*
-     * Rule:
-     * 5 FAILED_LOGIN events from same IP and username within 5 minutes
-     * followed by 1 SUCCESSFUL_LOGIN from same IP and username
-     * followed by 1 ADMIN_COMMAND_EXECUTED from same IP and username
-     * =
-     * PRIVILEGE_ESCALATION
-     * Severity: CRITICAL
-     *
-     * MITRE ATT&CK:
-     * T1068 - Exploitation for Privilege Escalation
-     */
     private void detectPrivilegeEscalation(SecurityEvent event,
                                            LocalDateTime fiveMinutesAgo) {
 
@@ -326,12 +277,57 @@ public class DetectionService {
                         "Possible privilege escalation after account compromise for user "
                                 + event.getUsername()
                                 + " from "
-                                + event.getSourceIp()
-                                + " - MITRE ATT&CK T1068",
+                                + event.getSourceIp(),
                         event.getSourceIp()
                 );
 
-                alertRepository.save(alert);
+                saveAlertWithMitre(alert);
+            }
+        }
+    }
+
+    private void saveAlertWithMitre(Alert alert) {
+        addMitreMetadata(alert);
+        alertRepository.save(alert);
+    }
+
+    private void addMitreMetadata(Alert alert) {
+
+        switch (alert.getAlertType()) {
+
+            case "BRUTE_FORCE_ATTEMPT" -> {
+                alert.setMitreTechnique("T1110");
+                alert.setMitreDescription("Brute Force");
+            }
+
+            case "ACCOUNT_COMPROMISE" -> {
+                alert.setMitreTechnique("T1078");
+                alert.setMitreDescription("Valid Accounts");
+            }
+
+            case "PASSWORD_SPRAY" -> {
+                alert.setMitreTechnique("T1110.003");
+                alert.setMitreDescription("Password Spraying");
+            }
+
+            case "BRUTE_FORCE_AGGRESSIVE" -> {
+                alert.setMitreTechnique("T1110");
+                alert.setMitreDescription("Brute Force");
+            }
+
+            case "PORT_SCAN" -> {
+                alert.setMitreTechnique("T1046");
+                alert.setMitreDescription("Network Service Discovery");
+            }
+
+            case "PRIVILEGE_ESCALATION" -> {
+                alert.setMitreTechnique("T1068");
+                alert.setMitreDescription("Exploitation for Privilege Escalation");
+            }
+
+            default -> {
+                alert.setMitreTechnique("UNKNOWN");
+                alert.setMitreDescription("Unknown Technique");
             }
         }
     }
