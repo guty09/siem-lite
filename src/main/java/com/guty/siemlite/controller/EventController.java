@@ -2,6 +2,8 @@ package com.guty.siemlite.controller;
 
 import com.guty.siemlite.model.SecurityEvent;
 import com.guty.siemlite.repository.SecurityEventRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +24,10 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/events")
+@Tag(
+        name = "Events",
+        description = "Security events generated from logs"
+)
 public class EventController {
 
     /*
@@ -55,6 +61,7 @@ public class EventController {
      *   }
      * ]
      */
+    @Operation(summary = "Retrieve all security events")
     @GetMapping
     public List<SecurityEvent> getEvents() {
 
