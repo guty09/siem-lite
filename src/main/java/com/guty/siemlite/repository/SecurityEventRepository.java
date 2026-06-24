@@ -70,5 +70,16 @@ public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Lo
             String username,
             String eventType,
             LocalDateTime timestamp);
+    /*
+     * Counts the total number of events
+     * matching a specific event type.
+     *
+     * Example:
+     * eventType = FAILED_LOGIN
+     *
+     * Spring Data JPA automatically generates
+     * the SQL query based on the method name.
+     */
+    long countByEventType(String eventType);
 
 }

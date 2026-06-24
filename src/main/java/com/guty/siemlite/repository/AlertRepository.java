@@ -71,4 +71,18 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     boolean existsBySourceIpAndAlertType(
             String sourceIp,
             String alertType);
+    /*
+     * Counts the total number of alerts
+     * matching a specific severity level.
+     *
+     * Example:
+     * severity = "CRITICAL"
+     *
+     * Spring Data JPA automatically generates
+     * the SQL query from the method name.
+     *
+     * This method is used by the dashboard
+     * to display alert counts by severity.
+     */
+    long countBySeverity(String severity);
 }
