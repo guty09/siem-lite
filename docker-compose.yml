@@ -1,0 +1,6 @@
+services:
+  siem-lite:
+    build: .
+    container_name: siem-lite
+    ports:
+      - "8081:8081"
