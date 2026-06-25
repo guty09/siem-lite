@@ -6,10 +6,8 @@ import com.guty.siemlite.specification.SecurityEventSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,18 +37,19 @@ public class EventController {
             @RequestParam(required = false)
             String username,
 
-            @PageableDefault(
-                    size = 20,
-                    sort = "timestamp",
-                    direction = Sort.Direction.DESC
-            )
-            Pageable pageable) {
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "20")
+            int size) {
 
         Specification<SecurityEvent> specification = Specification
                 .where(SecurityEventSpecification.hasEventType(eventType))
                 .and(SecurityEventSpecification.hasSourceIp(sourceIp))
                 .and(SecurityEventSpecification.hasUsername(username));
 
-        return securityEventRepository.findAll(specification, pageable);
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        return securityEventRepository.findAll(specification, pageRequest);
     }
 }
