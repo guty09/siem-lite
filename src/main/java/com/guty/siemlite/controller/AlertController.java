@@ -2,12 +2,15 @@ package com.guty.siemlite.controller;
 
 import com.guty.siemlite.model.Alert;
 import com.guty.siemlite.repository.AlertRepository;
+import com.guty.siemlite.specification.AlertSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/alerts")
@@ -20,10 +23,32 @@ public class AlertController {
         this.alertRepository = alertRepository;
     }
 
-    @Operation(summary = "Retrieve all alerts")
+    /**
+     * Retrieves alerts with optional filtering and pagination.
+     *
+     * <p>Supported filters:
+     * status, assignedTo, and mitreTechnique.</p>
+     *
+     * @param status optional alert status
+     * @param assignedTo optional assigned analyst
+     * @param mitreTechnique optional MITRE ATT&CK technique
+     * @param pageable pagination information
+     * @return a page of matching alerts
+     */
+    @Operation(summary = "Retrieve alerts with optional filtering")
     @GetMapping
-    public List<Alert> getAlerts() {
-        return alertRepository.findAll();
+    public Page<Alert> getAlerts(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String assignedTo,
+            @RequestParam(required = false) String mitreTechnique,
+            Pageable pageable) {
+
+        Specification<Alert> specification = Specification
+                .where(AlertSpecification.hasStatus(status))
+                .and(AlertSpecification.hasAssignedTo(assignedTo))
+                .and(AlertSpecification.hasMitreTechnique(mitreTechnique));
+
+        return alertRepository.findAll(specification, pageable);
     }
 
     @Operation(summary = "Assign analyst to an alert")

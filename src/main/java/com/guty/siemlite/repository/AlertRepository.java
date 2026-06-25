@@ -2,87 +2,52 @@ package com.guty.siemlite.repository;
 
 import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
-/*
- * Repository responsible for interacting
- * with the Alert table.
+/**
+ * Repository responsible for interacting with the Alert table.
  *
- * JpaRepository automatically provides:
- *
- * save()
- * findAll()
- * findById()
- * delete()
- * etc.
+ * <p>Provides standard CRUD operations through {@link JpaRepository},
+ * dynamic filtering support through {@link JpaSpecificationExecutor},
+ * and custom query methods used by the detection engine and dashboard.</p>
  */
-public interface AlertRepository extends JpaRepository<Alert, Long> {
+public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecificationExecutor<Alert> {
 
-    /*
-     * Find alerts matching a source IP and alert type.
+    /**
+     * Finds alerts matching a source IP address and alert type.
      *
-     * Example:
+     * <p>Used by the detection engine to prevent duplicate alerts.</p>
      *
-     * sourceIp = "192.168.1.60"
-     * alertType = "BRUTE_FORCE_ATTEMPT"
-     *
-     * Used primarily to prevent duplicate alerts.
-     *
-     * Example:
-     *
-     * Without this check:
-     *
-     * FAILED_LOGIN #5
-     * → BRUTE_FORCE_ATTEMPT
-     *
-     * FAILED_LOGIN #6
-     * → BRUTE_FORCE_ATTEMPT
-     *
-     * FAILED_LOGIN #7
-     * → BRUTE_FORCE_ATTEMPT
-     *
-     * The SIEM would flood the database with
-     * duplicate alerts.
-     *
-     * By checking existing alerts first,
-     * only one alert is generated.
+     * @param sourceIp the source IP address associated with the alert
+     * @param alertType the alert type to match
+     * @return matching alerts
      */
     List<Alert> findBySourceIpAndAlertType(
             String sourceIp,
             String alertType);
 
-    /*
-     * Returns true if an alert already exists
-     * for the specified source IP and alert type.
+    /**
+     * Checks whether an alert already exists for a source IP address and alert type.
      *
-     * Example:
+     * <p>Used for duplicate prevention, alert hierarchy, and alert lifecycle logic.</p>
      *
-     * sourceIp = "192.168.1.60"
-     * alertType = "BRUTE_FORCE_AGGRESSIVE"
-     *
-     * Useful for:
-     *
-     * - Duplicate prevention
-     * - Alert hierarchy
-     * - Suppressing lower-severity alerts
-     * - Future alert lifecycle management
+     * @param sourceIp the source IP address associated with the alert
+     * @param alertType the alert type to match
+     * @return true if a matching alert exists, otherwise false
      */
     boolean existsBySourceIpAndAlertType(
             String sourceIp,
             String alertType);
-    /*
-     * Counts the total number of alerts
-     * matching a specific severity level.
+
+    /**
+     * Counts alerts matching a specific severity level.
      *
-     * Example:
-     * severity = "CRITICAL"
+     * <p>Used by the dashboard to display alert counts by severity.</p>
      *
-     * Spring Data JPA automatically generates
-     * the SQL query from the method name.
-     *
-     * This method is used by the dashboard
-     * to display alert counts by severity.
+     * @param severity the severity level to count
+     * @return the number of alerts with the specified severity
      */
     long countBySeverity(String severity);
 }
