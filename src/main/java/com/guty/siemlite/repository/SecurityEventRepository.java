@@ -2,8 +2,8 @@ package com.guty.siemlite.repository;
 
 import com.guty.siemlite.model.SecurityEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +20,9 @@ import java.util.List;
  * delete()
  * etc.
  */
-public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Long> {
+public interface SecurityEventRepository extends
+        JpaRepository<SecurityEvent, Long>,
+        JpaSpecificationExecutor<SecurityEvent>{
 
     /*
      * Find all events matching a source IP and event type.
@@ -75,19 +77,7 @@ public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Lo
             String eventType,
             LocalDateTime timestamp);
 
-    /*
-     * Find events matching a specific event type
-     * using pagination.
-     *
-     * Example:
-     * eventType = FAILED_LOGIN
-     *
-     * Used by:
-     * GET /api/events?eventType=FAILED_LOGIN
-     */
-    Page<SecurityEvent> findByEventType(
-            String eventType,
-            Pageable pageable);
+
 
     /*
      * Counts the total number of events

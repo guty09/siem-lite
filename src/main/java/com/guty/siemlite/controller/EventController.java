@@ -2,28 +2,16 @@ package com.guty.siemlite.controller;
 
 import com.guty.siemlite.model.SecurityEvent;
 import com.guty.siemlite.repository.SecurityEventRepository;
+import com.guty.siemlite.specification.SecurityEventSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
-/*
- * REST controller responsible for security event endpoints.
- *
- * Events are the raw parsed records received by the SIEM.
- *
- * Example events:
- *
- * FAILED_LOGIN
- * SUCCESSFUL_LOGIN
- *
- * Endpoint:
- *
- * GET /api/events
- */
 @RestController
 @RequestMapping("/api/events")
 @Tag(
@@ -32,44 +20,24 @@ import org.springframework.web.bind.annotation.*;
 )
 public class EventController {
 
-    /*
-     * Repository used to interact with
-     * the SecurityEvent table.
-     */
     private final SecurityEventRepository securityEventRepository;
 
-    /*
-     * Constructor injection.
-     *
-     * Spring automatically supplies the repository.
-     */
     public EventController(SecurityEventRepository securityEventRepository) {
         this.securityEventRepository = securityEventRepository;
     }
 
-    /*
-     * GET /api/events
-     *
-     * Returns security events using pagination.
-     *
-     * Default behavior:
-     * - Page: 0
-     * - Size: 20
-     * - Sorted by timestamp (newest first)
-     *
-     * Examples:
-     *
-     * GET /api/events
-     * GET /api/events?page=0&size=10
-     * GET /api/events?page=1&size=25
-     * GET /api/events?sort=timestamp,desc
-     */
-    @Operation(summary = "Retrieve paginated security events")
+    @Operation(summary = "Retrieve paginated and filtered security events")
     @GetMapping
     public Page<SecurityEvent> getEvents(
 
             @RequestParam(required = false)
             String eventType,
+
+            @RequestParam(required = false)
+            String sourceIp,
+
+            @RequestParam(required = false)
+            String username,
 
             @PageableDefault(
                     size = 20,
@@ -78,19 +46,11 @@ public class EventController {
             )
             Pageable pageable) {
 
-        /*
-         * If an event type filter is supplied,
-         * return only matching events.
-         */
-        if (eventType != null && !eventType.isBlank()) {
-            return securityEventRepository.findByEventType(
-                    eventType,
-                    pageable);
-        }
+        Specification<SecurityEvent> specification = Specification
+                .where(SecurityEventSpecification.hasEventType(eventType))
+                .and(SecurityEventSpecification.hasSourceIp(sourceIp))
+                .and(SecurityEventSpecification.hasUsername(username));
 
-        /*
-         * Otherwise return every event.
-         */
-        return securityEventRepository.findAll(pageable);
+        return securityEventRepository.findAll(specification, pageable);
     }
 }
