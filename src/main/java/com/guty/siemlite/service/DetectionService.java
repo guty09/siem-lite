@@ -80,6 +80,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "BRUTE_FORCE_ATTEMPT",
                         "HIGH",
+                        70,
                         "Possible brute force attack detected from " + event.getSourceIp(),
                         event.getSourceIp()
                 );
@@ -115,6 +116,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "ACCOUNT_COMPROMISE",
                         "CRITICAL",
+                        95,
                         "Possible account compromise: successful login after multiple failed attempts from "
                                 + event.getSourceIp(),
                         event.getSourceIp()
@@ -154,6 +156,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "PASSWORD_SPRAY",
                         "HIGH",
+                        75,
                         "Possible password spray attack detected from "
                                 + event.getSourceIp()
                                 + " against multiple usernames",
@@ -190,6 +193,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "BRUTE_FORCE_AGGRESSIVE",
                         "CRITICAL",
+                        90,
                         "Aggressive brute force attack detected from " + event.getSourceIp(),
                         event.getSourceIp()
                 );
@@ -229,6 +233,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "PORT_SCAN",
                         "HIGH",
+                        60,
                         "Possible port scan detected from " + event.getSourceIp()
                                 + " targeting multiple destination ports",
                         event.getSourceIp()
@@ -274,6 +279,7 @@ public class DetectionService {
                         LocalDateTime.now(),
                         "PRIVILEGE_ESCALATION",
                         "CRITICAL",
+                        100,
                         "Possible privilege escalation after account compromise for user "
                                 + event.getUsername()
                                 + " from "

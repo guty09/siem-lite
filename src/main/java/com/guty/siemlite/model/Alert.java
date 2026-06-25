@@ -19,6 +19,8 @@ public class Alert {
 
     private String severity;
 
+    private Integer riskScore;
+
     private String message;
 
     private String sourceIp;
@@ -44,12 +46,14 @@ public class Alert {
     public Alert(LocalDateTime timestamp,
                  String alertType,
                  String severity,
+                 Integer riskScore,
                  String message,
                  String sourceIp) {
 
         this.timestamp = timestamp;
         this.alertType = alertType;
         this.severity = severity;
+        this.riskScore = riskScore;
         this.message = message;
         this.sourceIp = sourceIp;
 
@@ -74,6 +78,10 @@ public class Alert {
 
     public String getSeverity() {
         return severity;
+    }
+
+    public Integer getRiskScore() {
+        return riskScore;
     }
 
     public String getMessage() {
@@ -126,6 +134,10 @@ public class Alert {
 
     public void setSeverity(String severity) {
         this.severity = severity;
+    }
+
+    public void setRiskScore(Integer riskScore) {
+        this.riskScore = riskScore;
     }
 
     public void setMessage(String message) {
