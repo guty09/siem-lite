@@ -2,9 +2,13 @@ package com.guty.siemlite.repository;
 
 import com.guty.siemlite.model.SecurityEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+
 
 /*
  * Repository responsible for interacting with the SecurityEvent table.
@@ -70,6 +74,21 @@ public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Lo
             String username,
             String eventType,
             LocalDateTime timestamp);
+
+    /*
+     * Find events matching a specific event type
+     * using pagination.
+     *
+     * Example:
+     * eventType = FAILED_LOGIN
+     *
+     * Used by:
+     * GET /api/events?eventType=FAILED_LOGIN
+     */
+    Page<SecurityEvent> findByEventType(
+            String eventType,
+            Pageable pageable);
+
     /*
      * Counts the total number of events
      * matching a specific event type.
@@ -81,5 +100,6 @@ public interface SecurityEventRepository extends JpaRepository<SecurityEvent, Lo
      * the SQL query based on the method name.
      */
     long countByEventType(String eventType);
+
 
 }

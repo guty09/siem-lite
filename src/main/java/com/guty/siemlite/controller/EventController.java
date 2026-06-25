@@ -67,6 +67,10 @@ public class EventController {
     @Operation(summary = "Retrieve paginated security events")
     @GetMapping
     public Page<SecurityEvent> getEvents(
+
+            @RequestParam(required = false)
+            String eventType,
+
             @PageableDefault(
                     size = 20,
                     sort = "timestamp",
@@ -75,8 +79,17 @@ public class EventController {
             Pageable pageable) {
 
         /*
-         * Retrieve a page of security events
-         * from the database.
+         * If an event type filter is supplied,
+         * return only matching events.
+         */
+        if (eventType != null && !eventType.isBlank()) {
+            return securityEventRepository.findByEventType(
+                    eventType,
+                    pageable);
+        }
+
+        /*
+         * Otherwise return every event.
          */
         return securityEventRepository.findAll(pageable);
     }
