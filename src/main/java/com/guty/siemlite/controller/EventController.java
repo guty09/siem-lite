@@ -4,9 +4,11 @@ import com.guty.siemlite.model.SecurityEvent;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /*
  * REST controller responsible for security event endpoints.
@@ -48,27 +50,34 @@ public class EventController {
     /*
      * GET /api/events
      *
-     * Returns every security event stored
-     * in the database.
+     * Returns security events using pagination.
      *
-     * Example response:
+     * Default behavior:
+     * - Page: 0
+     * - Size: 20
+     * - Sorted by timestamp (newest first)
      *
-     * [
-     *   {
-     *      "sourceIp":"192.168.1.60",
-     *      "username":"root",
-     *      "eventType":"FAILED_LOGIN"
-     *   }
-     * ]
+     * Examples:
+     *
+     * GET /api/events
+     * GET /api/events?page=0&size=10
+     * GET /api/events?page=1&size=25
+     * GET /api/events?sort=timestamp,desc
      */
-    @Operation(summary = "Retrieve all security events")
+    @Operation(summary = "Retrieve paginated security events")
     @GetMapping
-    public List<SecurityEvent> getEvents() {
+    public Page<SecurityEvent> getEvents(
+            @PageableDefault(
+                    size = 20,
+                    sort = "timestamp",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable) {
 
         /*
-         * Retrieve all security events
-         * from the H2 database.
+         * Retrieve a page of security events
+         * from the database.
          */
-        return securityEventRepository.findAll();
+        return securityEventRepository.findAll(pageable);
     }
 }
