@@ -7,6 +7,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.guty.siemlite.dto.TopAlertType;
+
+import java.util.List;
 
 /**
  * REST controller that exposes SOC dashboard metrics and analytics.
@@ -49,5 +52,18 @@ public class DashboardController {
     @Operation(summary = "Get dashboard trend analytics")
     public DashboardTrends getDashboardTrends() {
         return dashboardService.getDashboardTrends();
+    }
+    /**
+     * Returns the most frequently generated alert types.
+     *
+     * <p>Provides alert frequency analytics to help SOC analysts
+     * identify the most common detections in the environment.</p>
+     *
+     * @return alert types ordered by descending occurrence
+     */
+    @GetMapping("/top-alert-types")
+    @Operation(summary = "Get top alert types")
+    public List<TopAlertType> getTopAlertTypes() {
+        return dashboardService.getTopAlertTypes();
     }
 }

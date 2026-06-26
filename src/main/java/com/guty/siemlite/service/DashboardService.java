@@ -5,6 +5,8 @@ import com.guty.siemlite.dto.DashboardTrends;
 import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
+import com.guty.siemlite.dto.TopAlertType;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -109,5 +111,16 @@ public class DashboardService {
                 securityEventRepository.countByTimestampAfter(now.minusDays(7)),
                 securityEventRepository.countByTimestampAfter(now.minusDays(30))
         );
+    }
+    /**
+     * Returns the most frequently generated alert types.
+     *
+     * <p>Used by the SOC dashboard to identify the most common detection
+     * categories currently appearing in the environment.</p>
+     *
+     * @return alert types ordered by descending count
+     */
+    public List<TopAlertType> getTopAlertTypes() {
+        return alertRepository.findTopAlertTypes();
     }
 }

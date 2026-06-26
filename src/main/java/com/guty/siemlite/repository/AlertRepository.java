@@ -4,6 +4,7 @@ import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import com.guty.siemlite.dto.TopAlertType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -88,4 +89,22 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
      * @return number of alerts matching or exceeding the risk score
      */
     long countByRiskScoreGreaterThanEqual(Integer riskScore);
+    /**
+     * Returns alert types ordered by the number of alerts generated.
+     *
+     * <p>Used by the SOC dashboard to display the most common
+     * alert types observed in the environment.</p>
+     *
+     * @return list of alert types ordered by descending alert count
+     */
+    @Query("""
+       SELECT new com.guty.siemlite.dto.TopAlertType(
+           a.alertType,
+           COUNT(a)
+       )
+       FROM Alert a
+       GROUP BY a.alertType
+       ORDER BY COUNT(a) DESC
+       """)
+    List<TopAlertType> findTopAlertTypes();
 }
