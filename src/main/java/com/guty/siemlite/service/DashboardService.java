@@ -6,6 +6,7 @@ import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
 import com.guty.siemlite.dto.TopAlertType;
+import com.guty.siemlite.dto.TopSourceIp;
 import java.util.List;
 
 import java.time.LocalDateTime;
@@ -122,5 +123,16 @@ public class DashboardService {
      */
     public List<TopAlertType> getTopAlertTypes() {
         return alertRepository.findTopAlertTypes();
+    }
+    /**
+     * Returns the most active source IP addresses.
+     *
+     * <p>Used by the SOC dashboard to identify which source IP addresses
+     * are generating the highest number of security events.</p>
+     *
+     * @return source IP addresses ordered by descending event count
+     */
+    public List<TopSourceIp> getTopSourceIps() {
+        return securityEventRepository.findTopSourceIps();
     }
 }

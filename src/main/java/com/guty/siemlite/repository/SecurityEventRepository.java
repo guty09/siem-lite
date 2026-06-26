@@ -3,6 +3,8 @@ package com.guty.siemlite.repository;
 import com.guty.siemlite.model.SecurityEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import com.guty.siemlite.dto.TopSourceIp;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -81,4 +83,20 @@ public interface SecurityEventRepository extends
      * @return number of security events after the specified timestamp
      */
     long countByTimestampAfter(LocalDateTime timestamp);
+    /**
+     * Finds the most active source IP addresses based on total security event count.
+     *
+     * <p>Used by dashboard analytics to identify the IP addresses generating
+     * the highest volume of security events.</p>
+     *
+     * @return source IP addresses ordered by event count in descending order
+     */
+    @Query("""
+            SELECT new com.guty.siemlite.dto.TopSourceIp(e.sourceIp, COUNT(e))
+            FROM SecurityEvent e
+            WHERE e.sourceIp IS NOT NULL
+            GROUP BY e.sourceIp
+            ORDER BY COUNT(e) DESC
+            """)
+    List<TopSourceIp> findTopSourceIps();
 }

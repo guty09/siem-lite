@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.guty.siemlite.dto.TopAlertType;
+import com.guty.siemlite.dto.TopSourceIp;
 
 import java.util.List;
 
@@ -65,5 +66,20 @@ public class DashboardController {
     @Operation(summary = "Get top alert types")
     public List<TopAlertType> getTopAlertTypes() {
         return dashboardService.getTopAlertTypes();
+
+    }
+    /**
+     * Returns the source IP addresses generating the highest number
+     * of security events.
+     *
+     * <p>Provides visibility into the most active hosts observed by
+     * the SIEM for SOC dashboard analytics.</p>
+     *
+     * @return source IP addresses ordered by descending event count
+     */
+    @GetMapping("/top-source-ips")
+    @Operation(summary = "Get top source IP addresses")
+    public List<TopSourceIp> getTopSourceIps() {
+        return dashboardService.getTopSourceIps();
     }
 }
