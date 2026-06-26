@@ -29,13 +29,15 @@ public class AlertController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String assignedTo,
             @RequestParam(required = false) String mitreTechnique,
+            @RequestParam(required = false) Integer minRiskScore,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         Specification<Alert> specification = Specification
                 .where(AlertSpecification.hasStatus(status))
                 .and(AlertSpecification.hasAssignedTo(assignedTo))
-                .and(AlertSpecification.hasMitreTechnique(mitreTechnique));
+                .and(AlertSpecification.hasMitreTechnique(mitreTechnique))
+                .and(AlertSpecification.hasMinimumRiskScore(minRiskScore));
 
         return alertRepository.findAll(specification, PageRequest.of(page, size));
     }

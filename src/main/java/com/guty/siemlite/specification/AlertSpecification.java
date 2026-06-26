@@ -49,6 +49,19 @@ public final class AlertSpecification {
     }
 
     /**
+     * Creates a specification that filters alerts by minimum risk score.
+     *
+     * @param minRiskScore the minimum risk score to match
+     * @return a specification filtering alerts by minimum risk score,
+     *         or {@code null} if minRiskScore is {@code null}
+     */
+    public static Specification<Alert> hasMinimumRiskScore(Integer minRiskScore) {
+        return (root, query, cb) ->
+                minRiskScore == null ? null :
+                        cb.greaterThanOrEqualTo(root.get("riskScore"), minRiskScore);
+    }
+
+    /**
      * Prevents instantiation of this utility class.
      */
     private AlertSpecification() {
