@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.dto.TopSourceIp;
 import java.util.List;
+import com.guty.siemlite.dto.TopUsername;
 
 import java.time.LocalDateTime;
 
@@ -134,5 +135,16 @@ public class DashboardService {
      */
     public List<TopSourceIp> getTopSourceIps() {
         return securityEventRepository.findTopSourceIps();
+    }
+    /**
+     * Returns the most active usernames.
+     *
+     * <p>Used by the SOC dashboard to identify which user accounts
+     * appear most frequently in security events.</p>
+     *
+     * @return usernames ordered by descending event count
+     */
+    public List<TopUsername> getTopUsernames() {
+        return securityEventRepository.findTopUsernames();
     }
 }

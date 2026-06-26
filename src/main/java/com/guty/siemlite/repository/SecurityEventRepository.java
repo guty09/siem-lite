@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import com.guty.siemlite.dto.TopSourceIp;
 import org.springframework.data.jpa.repository.Query;
+import com.guty.siemlite.dto.TopUsername;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -99,4 +100,20 @@ public interface SecurityEventRepository extends
             ORDER BY COUNT(e) DESC
             """)
     List<TopSourceIp> findTopSourceIps();
+    /**
+     * Finds the most active usernames based on total security event count.
+     *
+     * <p>Used by dashboard analytics to identify which user accounts
+     * appear most frequently in security events.</p>
+     *
+     * @return usernames ordered by event count in descending order
+     */
+    @Query("""
+            SELECT new com.guty.siemlite.dto.TopUsername(e.username, COUNT(e))
+            FROM SecurityEvent e
+            WHERE e.username IS NOT NULL
+            GROUP BY e.username
+            ORDER BY COUNT(e) DESC
+            """)
+    List<TopUsername> findTopUsernames();
 }
