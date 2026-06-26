@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,7 +40,14 @@ public class AlertController {
                 .and(AlertSpecification.hasMitreTechnique(mitreTechnique))
                 .and(AlertSpecification.hasMinimumRiskScore(minRiskScore));
 
-        return alertRepository.findAll(specification, PageRequest.of(page, size));
+        return alertRepository.findAll(
+                specification,
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(Sort.Direction.DESC, "riskScore")
+                )
+        );
     }
 
     @Operation(summary = "Assign analyst to an alert")
