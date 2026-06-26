@@ -2,74 +2,60 @@ package com.guty.siemlite.repository;
 
 import com.guty.siemlite.model.SecurityEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-
-
-/*
+/**
  * Repository responsible for interacting with the SecurityEvent table.
  *
- * JpaRepository automatically provides:
- * save()
- * findAll()
- * findById()
- * delete()
- * etc.
+ * <p>Provides standard CRUD operations through {@link JpaRepository},
+ * dynamic filtering through {@link JpaSpecificationExecutor}, and
+ * derived query methods used by detection rules and dashboard analytics.</p>
  */
 public interface SecurityEventRepository extends
         JpaRepository<SecurityEvent, Long>,
-        JpaSpecificationExecutor<SecurityEvent>{
+        JpaSpecificationExecutor<SecurityEvent> {
 
-    /*
-     * Find all events matching a source IP and event type.
+    /**
+     * Finds all security events matching a source IP address and event type.
      *
-     * Example:
-     * sourceIp = "192.168.1.60"
-     * eventType = "FAILED_LOGIN"
-     *
-     * Used for simple event lookups.
+     * @param sourceIp source IP address associated with the event
+     * @param eventType event type to match
+     * @return matching security events
      */
     List<SecurityEvent> findBySourceIpAndEventType(
             String sourceIp,
             String eventType);
 
-    /*
-     * Find events from a source IP and event type
-     * that occurred after a certain timestamp.
+    /**
+     * Finds security events from a source IP and event type
+     * that occurred after the specified timestamp.
      *
-     * Example:
+     * <p>Used by correlation rules such as brute-force and port-scan detection.</p>
      *
-     * IP = 192.168.1.60
-     * Event = FAILED_LOGIN
-     * Timestamp = now - 5 minutes
-     *
-     * This allows time-based correlation.
+     * @param sourceIp source IP address associated with the event
+     * @param eventType event type to match
+     * @param timestamp lower bound timestamp
+     * @return matching security events
      */
     List<SecurityEvent> findBySourceIpAndEventTypeAndTimestampAfter(
             String sourceIp,
             String eventType,
             LocalDateTime timestamp);
 
-    /*
-     * Find events matching:
-     * - source IP
-     * - username
-     * - event type
-     * - timestamp window
+    /**
+     * Finds security events matching a source IP address, username,
+     * event type, and timestamp window.
      *
-     * Example:
+     * <p>Used for precise correlation rules such as account compromise detection.</p>
      *
-     * IP = 192.168.1.60
-     * Username = root
-     * Event = FAILED_LOGIN
-     * Time = last 5 minutes
-     *
-     * Used for more precise correlation rules,
-     * such as ACCOUNT_COMPROMISE detection.
+     * @param sourceIp source IP address associated with the event
+     * @param username username associated with the event
+     * @param eventType event type to match
+     * @param timestamp lower bound timestamp
+     * @return matching security events
      */
     List<SecurityEvent> findBySourceIpAndUsernameAndEventTypeAndTimestampAfter(
             String sourceIp,
@@ -77,19 +63,22 @@ public interface SecurityEventRepository extends
             String eventType,
             LocalDateTime timestamp);
 
-
-
-    /*
-     * Counts the total number of events
-     * matching a specific event type.
+    /**
+     * Counts the total number of security events matching a specific event type.
      *
-     * Example:
-     * eventType = FAILED_LOGIN
-     *
-     * Spring Data JPA automatically generates
-     * the SQL query based on the method name.
+     * @param eventType event type to count
+     * @return number of matching security events
      */
     long countByEventType(String eventType);
 
-
+    /**
+     * Counts security events that occurred after the specified timestamp.
+     *
+     * <p>Used by dashboard analytics to measure event volume over
+     * common SOC reporting windows.</p>
+     *
+     * @param timestamp lower bound timestamp
+     * @return number of security events after the specified timestamp
+     */
+    long countByTimestampAfter(LocalDateTime timestamp);
 }

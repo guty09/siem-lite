@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -51,6 +52,18 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
      * @return the number of alerts with the specified severity
      */
     long countBySeverity(String severity);
+
+    /**
+     * Counts alerts created after the specified timestamp.
+     *
+     * <p>Used by the SOC dashboard to calculate alert trends over
+     * common reporting periods such as the last 24 hours,
+     * 7 days, and 30 days.</p>
+     *
+     * @param time lower bound timestamp
+     * @return number of alerts created after the specified time
+     */
+    long countByCreatedAtAfter(LocalDateTime time);
 
     /**
      * Calculates the total risk score across all alerts.
