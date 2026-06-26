@@ -15,58 +15,58 @@ import org.springframework.stereotype.Service;
 @Service
 public class DashboardService {
 
-    // Repository used to retrieve security event data
     private final SecurityEventRepository securityEventRepository;
-
-    // Repository used to retrieve alert data
     private final AlertRepository alertRepository;
 
-    /**
-     * Constructor-based dependency injection.
-     *
-     * Spring automatically injects the required repositories.
-     */
     public DashboardService(SecurityEventRepository securityEventRepository,
                             AlertRepository alertRepository) {
         this.securityEventRepository = securityEventRepository;
         this.alertRepository = alertRepository;
     }
 
-    /**
-     * Builds a dashboard summary containing
-     * high-level SIEM statistics.
-     *
-     * @return populated DashboardSummary object
-     */
     public DashboardSummary getDashboardSummary() {
 
         DashboardSummary summary = new DashboardSummary();
 
-        // Total number of security events
+        long totalAlerts = alertRepository.count();
+
         summary.setTotalEvents(securityEventRepository.count());
+        summary.setTotalAlerts(totalAlerts);
 
-        // Total number of generated alerts
-        summary.setTotalAlerts(alertRepository.count());
-
-        // Number of critical severity alerts
         summary.setCriticalAlerts(
                 alertRepository.countBySeverity("CRITICAL"));
 
-        // Number of high severity alerts
         summary.setHighAlerts(
                 alertRepository.countBySeverity("HIGH"));
 
-        // Total failed login events
         summary.setFailedLogins(
                 securityEventRepository.countByEventType("FAILED_LOGIN"));
 
-        // Total port scan events
         summary.setPortScans(
                 securityEventRepository.countByEventType("PORT_SCAN"));
 
-        // Total privilege escalation events
         summary.setPrivilegeEscalations(
                 securityEventRepository.countByEventType("PRIV_ESC"));
+
+        Integer totalRisk = alertRepository.sumRiskScore();
+        Integer highestRisk = alertRepository.maxRiskScore();
+
+        int totalRiskScore = totalRisk != null ? totalRisk : 0;
+        int highestRiskScore = highestRisk != null ? highestRisk : 0;
+
+        double averageRiskScore = totalAlerts > 0
+                ? (double) totalRiskScore / totalAlerts
+                : 0.0;
+
+        summary.setTotalRiskScore(totalRiskScore);
+        summary.setAverageRiskScore(averageRiskScore);
+        summary.setHighestRiskScore(highestRiskScore);
+
+        summary.setCriticalRiskAlertCount(
+                alertRepository.countByRiskScoreGreaterThanEqual(90));
+
+        summary.setHighRiskAlertCount(
+                alertRepository.countByRiskScoreGreaterThanEqual(70));
 
         return summary;
     }

@@ -37,6 +37,20 @@ public class DashboardSummary {
 
     // Total privilege escalation detections
     private long privilegeEscalations;
+    // Sum of all alert risk scores
+    private int totalRiskScore;
+
+    // Average risk score across all alerts
+    private double averageRiskScore;
+
+    // Highest risk score currently present
+    private int highestRiskScore;
+
+    // Number of alerts with risk score >= 90
+    private long criticalRiskAlertCount;
+
+    // Number of alerts with risk score >= 70
+    private long highRiskAlertCount;
 
     /**
      * Default constructor required by Spring Boot
@@ -114,4 +128,57 @@ public class DashboardSummary {
     public void setPrivilegeEscalations(long privilegeEscalations) {
         this.privilegeEscalations = privilegeEscalations;
     }
+
+
+    // Returns the total risk score
+    public int getTotalRiskScore() {
+        return totalRiskScore;
+    }
+
+    // Sets the total risk score
+    public void setTotalRiskScore(int totalRiskScore) {
+        this.totalRiskScore = totalRiskScore;
+    }
+
+    // Returns the average risk score
+    public double getAverageRiskScore() {
+        return averageRiskScore;
+    }
+
+    // Sets the average risk score
+    public void setAverageRiskScore(double averageRiskScore) {
+        this.averageRiskScore = averageRiskScore;
+    }
+
+    // Returns the highest risk score
+    public int getHighestRiskScore() {
+        return highestRiskScore;
+    }
+
+    // Sets the highest risk score
+    public void setHighestRiskScore(int highestRiskScore) {
+        this.highestRiskScore = highestRiskScore;
+    }
+
+    // Returns the number of critical-risk alerts
+    public long getCriticalRiskAlertCount() {
+        return criticalRiskAlertCount;
+    }
+
+    // Sets the number of critical-risk alerts
+    public void setCriticalRiskAlertCount(long criticalRiskAlertCount) {
+        this.criticalRiskAlertCount = criticalRiskAlertCount;
+    }
+
+    // Returns the number of high-risk alerts
+    public long getHighRiskAlertCount() {
+        return highRiskAlertCount;
+    }
+
+    // Sets the number of high-risk alerts
+    public void setHighRiskAlertCount(long highRiskAlertCount) {
+        this.highRiskAlertCount = highRiskAlertCount;
+    }
+
+
 }

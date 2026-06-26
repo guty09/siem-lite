@@ -3,6 +3,7 @@ package com.guty.siemlite.repository;
 import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -50,4 +51,28 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
      * @return the number of alerts with the specified severity
      */
     long countBySeverity(String severity);
+
+    /**
+     * Calculates the total risk score across all alerts.
+     *
+     * @return total risk score, or null if no alerts exist
+     */
+    @Query("SELECT SUM(a.riskScore) FROM Alert a")
+    Integer sumRiskScore();
+
+    /**
+     * Finds the highest risk score across all alerts.
+     *
+     * @return highest risk score, or null if no alerts exist
+     */
+    @Query("SELECT MAX(a.riskScore) FROM Alert a")
+    Integer maxRiskScore();
+
+    /**
+     * Counts alerts with a risk score greater than or equal to the supplied value.
+     *
+     * @param riskScore minimum risk score
+     * @return number of alerts matching or exceeding the risk score
+     */
+    long countByRiskScoreGreaterThanEqual(Integer riskScore);
 }
