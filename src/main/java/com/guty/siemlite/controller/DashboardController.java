@@ -12,6 +12,8 @@ import com.guty.siemlite.dto.TopSourceIp;
 import com.guty.siemlite.dto.TopUsername;
 import com.guty.siemlite.dto.RiskDistribution;
 import com.guty.siemlite.dto.MitreStatistic;
+import com.guty.siemlite.dto.DashboardTimelinePoint;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -124,5 +126,20 @@ public class DashboardController {
     @Operation(summary = "Get MITRE ATT&CK statistics")
     public List<MitreStatistic> getMitreStatistics() {
         return dashboardService.getMitreStatistics();
+    }
+    /**
+     * Returns daily dashboard timeline analytics.
+     *
+     * <p>Provides event and alert counts grouped by day for SOC dashboard
+     * charting and time-series analysis.</p>
+     *
+     * @param days number of days to include in the timeline
+     * @return daily timeline points ordered from oldest to newest
+     */
+    @GetMapping("/timeline")
+    @Operation(summary = "Get dashboard timeline analytics")
+    public List<DashboardTimelinePoint> getDashboardTimeline(
+            @RequestParam(defaultValue = "7") int days) {
+        return dashboardService.getDashboardTimeline(days);
     }
 }

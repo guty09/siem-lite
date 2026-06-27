@@ -85,6 +85,19 @@ public interface SecurityEventRepository extends
      */
     long countByTimestampAfter(LocalDateTime timestamp);
     /**
+     * Counts security events that occurred within a timestamp range.
+     *
+     * <p>Used by dashboard timeline analytics to calculate daily
+     * security event volume.</p>
+     *
+     * @param start inclusive start timestamp
+     * @param end exclusive end timestamp
+     * @return number of security events within the timestamp range
+     */
+    long countByTimestampGreaterThanEqualAndTimestampLessThan(
+            LocalDateTime start,
+            LocalDateTime end);
+    /**
      * Finds the most active source IP addresses based on total security event count.
      *
      * <p>Used by dashboard analytics to identify the IP addresses generating

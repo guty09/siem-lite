@@ -10,6 +10,10 @@ import com.guty.siemlite.dto.TopUsername;
 import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
+import com.guty.siemlite.dto.DashboardTimelinePoint;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -181,5 +185,47 @@ public class DashboardService {
      */
     public List<MitreStatistic> getMitreStatistics() {
         return alertRepository.findMitreStatistics();
+    }
+    /**
+     * Builds daily timeline analytics for dashboard charting.
+     *
+     * <p>Calculates event and alert volume for each day in the requested
+     * lookback period. Each day is evaluated using an inclusive start
+     * timestamp and an exclusive end timestamp to avoid double-counting
+     * records at midnight boundaries.</p>
+     *
+     * @param days number of days to include in the timeline
+     * @return daily event and alert counts ordered from oldest to newest
+     */
+    public List<DashboardTimelinePoint> getDashboardTimeline(int days) {
+
+        List<DashboardTimelinePoint> timeline = new ArrayList<>();
+
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(days - 1L);
+
+        for (int i = 0; i < days; i++) {
+            LocalDate currentDate = startDate.plusDays(i);
+
+            LocalDateTime start = currentDate.atStartOfDay();
+            LocalDateTime end = currentDate.plusDays(1).atStartOfDay();
+
+            long events = securityEventRepository
+                    .countByTimestampGreaterThanEqualAndTimestampLessThan(
+                            start,
+                            end);
+
+            long alerts = alertRepository
+                    .countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                            start,
+                            end);
+
+            timeline.add(new DashboardTimelinePoint(
+                    currentDate,
+                    events,
+                    alerts));
+        }
+
+        return timeline;
     }
 }

@@ -57,6 +57,19 @@ public interface AlertRepository extends
      * @return number of matching alerts
      */
     long countByCreatedAtAfter(LocalDateTime time);
+    /**
+     * Counts alerts created within a timestamp range.
+     *
+     * <p>Used by dashboard timeline analytics to calculate daily
+     * alert volume.</p>
+     *
+     * @param start inclusive start timestamp
+     * @param end exclusive end timestamp
+     * @return number of alerts created within the timestamp range
+     */
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            LocalDateTime start,
+            LocalDateTime end);
 
     /**
      * Counts alerts with risk scores below the supplied value.
