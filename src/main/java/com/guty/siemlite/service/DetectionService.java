@@ -16,14 +16,20 @@ public class DetectionService {
 
     private final SecurityEventRepository securityEventRepository;
     private final AlertRepository alertRepository;
+    private final ThreatIntelligenceService threatIntelligenceService;
 
     public DetectionService(SecurityEventRepository securityEventRepository,
-                            AlertRepository alertRepository) {
+                            AlertRepository alertRepository,
+                            ThreatIntelligenceService threatIntelligenceService) {
+
         this.securityEventRepository = securityEventRepository;
         this.alertRepository = alertRepository;
+        this.threatIntelligenceService = threatIntelligenceService;
     }
 
     public void analyze(SecurityEvent event) {
+
+        threatIntelligenceService.isKnownMaliciousIp(event.getSourceIp());
 
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
 
@@ -32,6 +38,9 @@ public class DetectionService {
             detectBruteForce(event, fiveMinutesAgo);
             detectPasswordSpray(event, fiveMinutesAgo);
         }
+
+        // rest of your existing code...
+
 
         if ("SUCCESSFUL_LOGIN".equals(event.getEventType())) {
             detectAccountCompromise(event, fiveMinutesAgo);
