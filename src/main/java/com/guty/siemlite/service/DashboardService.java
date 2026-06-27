@@ -9,6 +9,7 @@ import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.dto.TopSourceIp;
 import java.util.List;
 import com.guty.siemlite.dto.TopUsername;
+import com.guty.siemlite.dto.RiskDistribution;
 
 import java.time.LocalDateTime;
 
@@ -146,5 +147,22 @@ public class DashboardService {
      */
     public List<TopUsername> getTopUsernames() {
         return securityEventRepository.findTopUsernames();
+    }
+    /**
+     * Builds alert risk distribution analytics.
+     *
+     * <p>Groups alerts into enterprise SOC risk bands so the dashboard
+     * can show how many alerts fall into low, medium, high, and critical
+     * priority ranges.</p>
+     *
+     * @return alert counts grouped by risk band
+     */
+    public RiskDistribution getRiskDistribution() {
+        return new RiskDistribution(
+                alertRepository.countByRiskScoreLessThan(40),
+                alertRepository.countByRiskScoreBetween(40, 69),
+                alertRepository.countByRiskScoreBetween(70, 89),
+                alertRepository.countByRiskScoreGreaterThanEqual(90)
+        );
     }
 }

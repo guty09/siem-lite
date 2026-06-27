@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.dto.TopSourceIp;
 import com.guty.siemlite.dto.TopUsername;
+import com.guty.siemlite.dto.RiskDistribution;
 
 import java.util.List;
 
@@ -96,5 +97,18 @@ public class DashboardController {
     @Operation(summary = "Get top usernames")
     public List<TopUsername> getTopUsernames() {
         return dashboardService.getTopUsernames();
+    }
+    /**
+     * Returns alert counts grouped by risk band.
+     *
+     * <p>Provides SOC dashboard visibility into how alerts are distributed
+     * across low, medium, high, and critical risk levels.</p>
+     *
+     * @return alert counts grouped by risk band
+     */
+    @GetMapping("/risk-distribution")
+    @Operation(summary = "Get alert risk distribution")
+    public RiskDistribution getRiskDistribution() {
+        return dashboardService.getRiskDistribution();
     }
 }

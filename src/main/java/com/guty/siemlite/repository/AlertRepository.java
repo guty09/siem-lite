@@ -1,10 +1,10 @@
 package com.guty.siemlite.repository;
 
+import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import com.guty.siemlite.dto.TopAlertType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,19 +12,18 @@ import java.util.List;
 /**
  * Repository responsible for interacting with the Alert table.
  *
- * <p>Provides standard CRUD operations through {@link JpaRepository},
- * dynamic filtering support through {@link JpaSpecificationExecutor},
- * and custom query methods used by the detection engine and dashboard.</p>
+ * <p>Provides CRUD operations, dynamic filtering, detection support,
+ * and dashboard analytics queries.</p>
  */
-public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecificationExecutor<Alert> {
+public interface AlertRepository extends
+        JpaRepository<Alert, Long>,
+        JpaSpecificationExecutor<Alert> {
 
     /**
      * Finds alerts matching a source IP address and alert type.
      *
-     * <p>Used by the detection engine to prevent duplicate alerts.</p>
-     *
-     * @param sourceIp the source IP address associated with the alert
-     * @param alertType the alert type to match
+     * @param sourceIp source IP address
+     * @param alertType alert type
      * @return matching alerts
      */
     List<Alert> findBySourceIpAndAlertType(
@@ -32,39 +31,59 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
             String alertType);
 
     /**
-     * Checks whether an alert already exists for a source IP address and alert type.
+     * Determines whether a matching alert already exists.
      *
-     * <p>Used for duplicate prevention, alert hierarchy, and alert lifecycle logic.</p>
-     *
-     * @param sourceIp the source IP address associated with the alert
-     * @param alertType the alert type to match
-     * @return true if a matching alert exists, otherwise false
+     * @param sourceIp source IP address
+     * @param alertType alert type
+     * @return true if a matching alert exists
      */
     boolean existsBySourceIpAndAlertType(
             String sourceIp,
             String alertType);
 
     /**
-     * Counts alerts matching a specific severity level.
+     * Counts alerts by severity.
      *
-     * <p>Used by the dashboard to display alert counts by severity.</p>
-     *
-     * @param severity the severity level to count
-     * @return the number of alerts with the specified severity
+     * @param severity severity level
+     * @return number of matching alerts
      */
     long countBySeverity(String severity);
 
     /**
-     * Counts alerts created after the specified timestamp.
-     *
-     * <p>Used by the SOC dashboard to calculate alert trends over
-     * common reporting periods such as the last 24 hours,
-     * 7 days, and 30 days.</p>
+     * Counts alerts created after a timestamp.
      *
      * @param time lower bound timestamp
-     * @return number of alerts created after the specified time
+     * @return number of matching alerts
      */
     long countByCreatedAtAfter(LocalDateTime time);
+
+    /**
+     * Counts alerts with risk scores below the supplied value.
+     *
+     * @param riskScore exclusive upper bound
+     * @return number of matching alerts
+     */
+    long countByRiskScoreLessThan(Integer riskScore);
+
+    /**
+     * Counts alerts with risk scores between the supplied bounds.
+     *
+     * @param minRiskScore inclusive lower bound
+     * @param maxRiskScore inclusive upper bound
+     * @return number of matching alerts
+     */
+    long countByRiskScoreBetween(
+            Integer minRiskScore,
+            Integer maxRiskScore);
+
+    /**
+     * Counts alerts with risk scores greater than or equal
+     * to the supplied value.
+     *
+     * @param riskScore inclusive lower bound
+     * @return number of matching alerts
+     */
+    long countByRiskScoreGreaterThanEqual(Integer riskScore);
 
     /**
      * Calculates the total risk score across all alerts.
@@ -75,7 +94,7 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
     Integer sumRiskScore();
 
     /**
-     * Finds the highest risk score across all alerts.
+     * Finds the highest risk score.
      *
      * @return highest risk score, or null if no alerts exist
      */
@@ -83,28 +102,18 @@ public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecific
     Integer maxRiskScore();
 
     /**
-     * Counts alerts with a risk score greater than or equal to the supplied value.
+     * Returns alert types ordered by occurrence.
      *
-     * @param riskScore minimum risk score
-     * @return number of alerts matching or exceeding the risk score
-     */
-    long countByRiskScoreGreaterThanEqual(Integer riskScore);
-    /**
-     * Returns alert types ordered by the number of alerts generated.
-     *
-     * <p>Used by the SOC dashboard to display the most common
-     * alert types observed in the environment.</p>
-     *
-     * @return list of alert types ordered by descending alert count
+     * @return alert types ordered by descending count
      */
     @Query("""
-       SELECT new com.guty.siemlite.dto.TopAlertType(
-           a.alertType,
-           COUNT(a)
-       )
-       FROM Alert a
-       GROUP BY a.alertType
-       ORDER BY COUNT(a) DESC
-       """)
+            SELECT new com.guty.siemlite.dto.TopAlertType(
+                a.alertType,
+                COUNT(a)
+            )
+            FROM Alert a
+            GROUP BY a.alertType
+            ORDER BY COUNT(a) DESC
+            """)
     List<TopAlertType> findTopAlertTypes();
 }
