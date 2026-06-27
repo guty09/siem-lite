@@ -16,7 +16,7 @@ public class IndicatorOfCompromise {
     /**
      * The IOC value, such as an IP address, domain, URL, or file hash.
      */
-    @Column(nullable = false, unique = true)
+    @Column(name = "ioc_value", nullable = false, unique = true)
     private String value;
 
     /**
