@@ -29,7 +29,7 @@ public class DetectionService {
 
     public void analyze(SecurityEvent event) {
 
-        threatIntelligenceService.isKnownMaliciousIp(event.getSourceIp());
+        detectIocMatch(event);
 
         LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
 
@@ -300,6 +300,37 @@ public class DetectionService {
             }
         }
     }
+    private void detectIocMatch(SecurityEvent event) {
+
+        boolean knownMaliciousIp =
+                threatIntelligenceService.isKnownMaliciousIp(event.getSourceIp());
+
+        if (!knownMaliciousIp) {
+            return;
+        }
+
+        boolean iocMatchExists =
+                alertRepository.existsBySourceIpAndAlertType(
+                        event.getSourceIp(),
+                        "IOC_MATCH"
+                );
+
+        if (iocMatchExists) {
+            return;
+        }
+
+        Alert alert = new Alert(
+                LocalDateTime.now(),
+                "IOC_MATCH",
+                "CRITICAL",
+                95,
+                "Threat intelligence match detected for known malicious IP "
+                        + event.getSourceIp(),
+                event.getSourceIp()
+        );
+
+        saveAlertWithMitre(alert);
+    }
 
     private void saveAlertWithMitre(Alert alert) {
         addMitreMetadata(alert);
@@ -338,6 +369,10 @@ public class DetectionService {
             case "PRIVILEGE_ESCALATION" -> {
                 alert.setMitreTechnique("T1068");
                 alert.setMitreDescription("Exploitation for Privilege Escalation");
+            }
+            case "IOC_MATCH" -> {
+                alert.setMitreTechnique("T1105");
+                alert.setMitreDescription("Ingress Tool Transfer");
             }
 
             default -> {
