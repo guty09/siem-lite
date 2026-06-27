@@ -11,6 +11,7 @@ import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.dto.TopSourceIp;
 import com.guty.siemlite.dto.TopUsername;
 import com.guty.siemlite.dto.RiskDistribution;
+import com.guty.siemlite.dto.MitreStatistic;
 
 import java.util.List;
 
@@ -110,5 +111,18 @@ public class DashboardController {
     @Operation(summary = "Get alert risk distribution")
     public RiskDistribution getRiskDistribution() {
         return dashboardService.getRiskDistribution();
+    }
+    /**
+     * Returns alert counts grouped by MITRE ATT&CK technique.
+     *
+     * <p>Provides SOC dashboard analytics showing which adversary
+     * techniques are most frequently represented by generated alerts.</p>
+     *
+     * @return MITRE ATT&CK techniques ordered by descending alert count
+     */
+    @GetMapping("/mitre-statistics")
+    @Operation(summary = "Get MITRE ATT&CK statistics")
+    public List<MitreStatistic> getMitreStatistics() {
+        return dashboardService.getMitreStatistics();
     }
 }

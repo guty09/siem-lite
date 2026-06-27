@@ -1,5 +1,6 @@
 package com.guty.siemlite.repository;
 
+import com.guty.siemlite.dto.MitreStatistic;
 import com.guty.siemlite.dto.TopAlertType;
 import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -116,4 +117,24 @@ public interface AlertRepository extends
             ORDER BY COUNT(a) DESC
             """)
     List<TopAlertType> findTopAlertTypes();
+
+    /**
+     * Returns MITRE ATT&CK techniques ordered by alert occurrence.
+     *
+     * <p>This query supports dashboard analytics by showing which MITRE
+     * techniques appear most frequently across generated alerts.</p>
+     *
+     * @return MITRE technique statistics ordered by descending count
+     */
+    @Query("""
+            SELECT new com.guty.siemlite.dto.MitreStatistic(
+                a.mitreTechnique,
+                COUNT(a)
+            )
+            FROM Alert a
+            WHERE a.mitreTechnique IS NOT NULL
+            GROUP BY a.mitreTechnique
+            ORDER BY COUNT(a) DESC
+            """)
+    List<MitreStatistic> findMitreStatistics();
 }

@@ -2,16 +2,17 @@ package com.guty.siemlite.service;
 
 import com.guty.siemlite.dto.DashboardSummary;
 import com.guty.siemlite.dto.DashboardTrends;
+import com.guty.siemlite.dto.MitreStatistic;
+import com.guty.siemlite.dto.RiskDistribution;
+import com.guty.siemlite.dto.TopAlertType;
+import com.guty.siemlite.dto.TopSourceIp;
+import com.guty.siemlite.dto.TopUsername;
 import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
-import com.guty.siemlite.dto.TopAlertType;
-import com.guty.siemlite.dto.TopSourceIp;
-import java.util.List;
-import com.guty.siemlite.dto.TopUsername;
-import com.guty.siemlite.dto.RiskDistribution;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service responsible for generating SOC dashboard statistics.
@@ -115,6 +116,7 @@ public class DashboardService {
                 securityEventRepository.countByTimestampAfter(now.minusDays(30))
         );
     }
+
     /**
      * Returns the most frequently generated alert types.
      *
@@ -126,6 +128,7 @@ public class DashboardService {
     public List<TopAlertType> getTopAlertTypes() {
         return alertRepository.findTopAlertTypes();
     }
+
     /**
      * Returns the most active source IP addresses.
      *
@@ -137,6 +140,7 @@ public class DashboardService {
     public List<TopSourceIp> getTopSourceIps() {
         return securityEventRepository.findTopSourceIps();
     }
+
     /**
      * Returns the most active usernames.
      *
@@ -148,6 +152,7 @@ public class DashboardService {
     public List<TopUsername> getTopUsernames() {
         return securityEventRepository.findTopUsernames();
     }
+
     /**
      * Builds alert risk distribution analytics.
      *
@@ -164,5 +169,17 @@ public class DashboardService {
                 alertRepository.countByRiskScoreBetween(70, 89),
                 alertRepository.countByRiskScoreGreaterThanEqual(90)
         );
+    }
+
+    /**
+     * Returns MITRE ATT&CK technique statistics for generated alerts.
+     *
+     * <p>Used by the SOC dashboard to show which adversary techniques
+     * are most frequently represented across alert activity.</p>
+     *
+     * @return MITRE ATT&CK techniques ordered by descending alert count
+     */
+    public List<MitreStatistic> getMitreStatistics() {
+        return alertRepository.findMitreStatistics();
     }
 }
