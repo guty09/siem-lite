@@ -30,7 +30,16 @@ public class CorrelationService {
      */
     public void analyze(Alert alert) {
 
-        // Correlation rules will be added incrementally.
+        if ("IOC_MATCH".equals(alert.getAlertType())) {
+
+            createIncident(
+                    "THREAT_INTELLIGENCE_INCIDENT",
+                    "CRITICAL",
+                    95,
+                    "Threat intelligence incident generated from known malicious IOC activity.",
+                    alert.getSourceIp()
+            );
+        }
     }
 
     /**

@@ -334,10 +334,13 @@ public class DetectionService {
 
         saveAlertWithMitre(alert);
     }
-
     private void saveAlertWithMitre(Alert alert) {
+
         addMitreMetadata(alert);
-        alertRepository.save(alert);
+
+        Alert savedAlert = alertRepository.save(alert);
+
+        correlationService.analyze(savedAlert);
     }
 
     private void addMitreMetadata(Alert alert) {
@@ -373,6 +376,7 @@ public class DetectionService {
                 alert.setMitreTechnique("T1068");
                 alert.setMitreDescription("Exploitation for Privilege Escalation");
             }
+
             case "IOC_MATCH" -> {
                 alert.setMitreTechnique("T1105");
                 alert.setMitreDescription("Ingress Tool Transfer");
