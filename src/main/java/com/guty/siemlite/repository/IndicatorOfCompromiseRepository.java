@@ -36,4 +36,12 @@ public interface IndicatorOfCompromiseRepository extends JpaRepository<Indicator
      * @return matching IOCs
      */
     List<IndicatorOfCompromise> findByTypeAndActive(IocType type, boolean active);
+    /**
+     * Finds an active IOC by its value and type.
+     *
+     * @param value IOC value
+     * @param type IOC type
+     * @return matching active IOC, if present
+     */
+    Optional<IndicatorOfCompromise> findByValueAndTypeAndActiveTrue(String value, IocType type);
 }
