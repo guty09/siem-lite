@@ -17,14 +17,17 @@ public class DetectionService {
     private final SecurityEventRepository securityEventRepository;
     private final AlertRepository alertRepository;
     private final ThreatIntelligenceService threatIntelligenceService;
+    private final CorrelationService correlationService;
 
     public DetectionService(SecurityEventRepository securityEventRepository,
                             AlertRepository alertRepository,
-                            ThreatIntelligenceService threatIntelligenceService) {
+                            ThreatIntelligenceService threatIntelligenceService,
+                            CorrelationService correlationService) {
 
         this.securityEventRepository = securityEventRepository;
         this.alertRepository = alertRepository;
         this.threatIntelligenceService = threatIntelligenceService;
+        this.correlationService = correlationService;
     }
 
     public void analyze(SecurityEvent event) {
