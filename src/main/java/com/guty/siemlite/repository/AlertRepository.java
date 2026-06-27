@@ -6,6 +6,7 @@ import com.guty.siemlite.model.Alert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -150,4 +151,29 @@ public interface AlertRepository extends
             ORDER BY COUNT(a) DESC
             """)
     List<MitreStatistic> findMitreStatistics();
+    /**
+     * Counts alerts by alert type.
+     *
+     * @param alertType alert type
+     * @return number of matching alerts
+     */
+    long countByAlertType(String alertType);
+
+    /**
+     * Counts alerts by alert type and severity.
+     *
+     * @param alertType alert type
+     * @param severity severity level
+     * @return number of matching alerts
+     */
+    long countByAlertTypeAndSeverity(String alertType, String severity);
+
+    /**
+     * Counts unique source IP addresses for a specific alert type.
+     *
+     * @param alertType alert type
+     * @return number of unique source IP addresses
+     */
+    @Query("SELECT COUNT(DISTINCT a.sourceIp) FROM Alert a WHERE a.alertType = :alertType")
+    long countDistinctSourceIpByAlertType(@Param("alertType") String alertType);
 }

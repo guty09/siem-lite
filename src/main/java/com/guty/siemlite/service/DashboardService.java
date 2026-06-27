@@ -11,6 +11,7 @@ import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.repository.SecurityEventRepository;
 import org.springframework.stereotype.Service;
 import com.guty.siemlite.dto.DashboardTimelinePoint;
+import com.guty.siemlite.dto.IocStatistics;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -227,5 +228,21 @@ public class DashboardService {
         }
 
         return timeline;
+    }
+    /**
+     * Builds IOC alert statistics for the SOC dashboard.
+     *
+     * <p>Summarizes alerts generated from threat intelligence matches,
+     * including total IOC alerts, critical IOC alerts, and the number of
+     * unique malicious source IPs observed.</p>
+     *
+     * @return IOC alert statistics
+     */
+    public IocStatistics getIocStatistics() {
+        return new IocStatistics(
+                alertRepository.countByAlertType("IOC_MATCH"),
+                alertRepository.countByAlertTypeAndSeverity("IOC_MATCH", "CRITICAL"),
+                alertRepository.countDistinctSourceIpByAlertType("IOC_MATCH")
+        );
     }
 }

@@ -14,6 +14,7 @@ import com.guty.siemlite.dto.RiskDistribution;
 import com.guty.siemlite.dto.MitreStatistic;
 import com.guty.siemlite.dto.DashboardTimelinePoint;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.guty.siemlite.dto.IocStatistics;
 
 import java.util.List;
 
@@ -141,5 +142,18 @@ public class DashboardController {
     public List<DashboardTimelinePoint> getDashboardTimeline(
             @RequestParam(defaultValue = "7") int days) {
         return dashboardService.getDashboardTimeline(days);
+    }
+    /**
+     * Returns IOC alert statistics for threat intelligence dashboarding.
+     *
+     * <p>Provides visibility into alerts generated from known malicious
+     * indicators of compromise.</p>
+     *
+     * @return IOC alert statistics
+     */
+    @GetMapping("/ioc-statistics")
+    @Operation(summary = "Get IOC alert statistics")
+    public IocStatistics getIocStatistics() {
+        return dashboardService.getIocStatistics();
     }
 }
