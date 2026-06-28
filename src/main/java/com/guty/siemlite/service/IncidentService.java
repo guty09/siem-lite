@@ -3,6 +3,7 @@ package com.guty.siemlite.service;
 import com.guty.siemlite.model.Incident;
 import com.guty.siemlite.repository.IncidentRepository;
 import org.springframework.stereotype.Service;
+import com.guty.siemlite.exception.IncidentNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,7 @@ public class IncidentService {
 
     public Incident getIncidentById(Long id) {
         return incidentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Incident not found with id: " + id));
+                .orElseThrow(() -> new IncidentNotFoundException(id));
     }
 
     public Incident assignIncident(Long id, String assignedAnalyst) {

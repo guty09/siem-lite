@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
+import com.guty.siemlite.exception.AlertNotFoundException;
 
 import java.time.LocalDateTime;
 
@@ -56,7 +57,7 @@ public class AlertController {
                                @RequestParam String analyst) {
 
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alert not found with id: " + id));
+                .orElseThrow(() -> new AlertNotFoundException(id));
 
         alert.setAssignedAnalyst(analyst);
         alert.setUpdatedAt(LocalDateTime.now());
@@ -70,7 +71,7 @@ public class AlertController {
                               @RequestParam String status) {
 
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alert not found with id: " + id));
+                .orElseThrow(() -> new AlertNotFoundException(id));
 
         if (!status.equals("OPEN")
                 && !status.equals("INVESTIGATING")
@@ -90,7 +91,7 @@ public class AlertController {
                              @RequestParam String note) {
 
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alert not found with id: " + id));
+                .orElseThrow(() -> new AlertNotFoundException(id));
 
         alert.setNotes(note);
         alert.setUpdatedAt(LocalDateTime.now());

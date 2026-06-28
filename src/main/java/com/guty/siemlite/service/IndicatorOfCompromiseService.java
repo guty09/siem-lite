@@ -4,6 +4,7 @@ import com.guty.siemlite.dto.IndicatorOfCompromiseRequest;
 import com.guty.siemlite.model.IndicatorOfCompromise;
 import com.guty.siemlite.repository.IndicatorOfCompromiseRepository;
 import org.springframework.stereotype.Service;
+import com.guty.siemlite.exception.IocNotFoundException;
 
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class IndicatorOfCompromiseService {
      */
     public IndicatorOfCompromise getIocById(Long id) {
         return indicatorOfCompromiseRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("IOC not found with ID: " + id));
+                .orElseThrow(() -> new IocNotFoundException(id));
     }
 
     /**
