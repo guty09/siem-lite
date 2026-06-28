@@ -76,7 +76,7 @@ public class AlertController {
         if (!status.equals("OPEN")
                 && !status.equals("INVESTIGATING")
                 && !status.equals("CLOSED")) {
-            throw new RuntimeException("Invalid status. Use OPEN, INVESTIGATING, or CLOSED.");
+            throw new IllegalArgumentException("Invalid status. Use OPEN, INVESTIGATING, or CLOSED.");
         }
 
         alert.setStatus(status);
