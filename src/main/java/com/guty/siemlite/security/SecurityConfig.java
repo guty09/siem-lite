@@ -4,6 +4,7 @@ import com.guty.siemlite.security.jwt.JwtAuthenticationFilter;
 import com.guty.siemlite.security.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,14 +39,36 @@ public class SecurityConfig {
                 )
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/register",
+                                "/api/auth/login",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/h2-console/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
+
+                        .requestMatchers("/api/auth/me")
+                        .authenticated()
+
+                        .requestMatchers(HttpMethod.PUT, "/api/alerts/*/assign")
+                        .hasAnyRole("ANALYST", "ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/alerts/*/status")
+                        .hasAnyRole("ANALYST", "ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/alerts/*/notes")
+                        .hasAnyRole("ANALYST", "ADMIN")
+
+                        .requestMatchers("/api/incidents/**", "/api/iocs/**")
+                        .hasAnyRole("ANALYST", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/**")
+                        .hasAnyRole("VIEWER", "ANALYST", "ADMIN")
+
+                        .anyRequest()
+                        .hasRole("ADMIN")
                 )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
