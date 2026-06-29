@@ -17,9 +17,9 @@ public class DataInitializer {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            createUserIfMissing(userRepository, passwordEncoder, "admin", "admin123", Role.ADMIN);
-            createUserIfMissing(userRepository, passwordEncoder, "analyst", "analyst123", Role.ANALYST);
-            createUserIfMissing(userRepository, passwordEncoder, "viewer", "viewer123", Role.VIEWER);
+            createUserIfMissing(userRepository, passwordEncoder, "admin", "Password123", Role.ADMIN);
+            createUserIfMissing(userRepository, passwordEncoder, "analyst", "Password123", Role.ANALYST);
+            createUserIfMissing(userRepository, passwordEncoder, "viewer", "Password123", Role.VIEWER);
         };
     }
 
