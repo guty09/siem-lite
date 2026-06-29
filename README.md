@@ -8,12 +8,15 @@ The goal of the project is to simulate the correlation engine found in enterpris
 
 ## Technologies
 
-* Java 25
+* Java 21
 * Spring Boot 4.1.0
-* Maven
+* Spring Security 7
+* JWT Authentication
+* Spring Data JPA
 * H2 Database
-* REST API
-* Postman
+* Swagger / OpenAPI
+* Docker
+* Maven Wrapper
 * Git
 
 ---
@@ -31,19 +34,34 @@ SecurityEvent
         ↓
 SecurityEventRepository
         ↓
-H2 Database
-        ↓
 DetectionService
         ↓
 Alert
         ↓
 AlertRepository
         ↓
-H2 Database
+Audit Logging
         ↓
+H2 Database
+
 GET /api/events
 GET /api/alerts
+GET /api/audit
 ```
+
+---
+
+## Authentication
+
+JWT-based authentication with Role-Based Access Control (RBAC).
+
+Demo users are automatically seeded at application startup.
+
+| Username | Password    | Role    |
+| -------- | ----------- | ------- |
+| admin    | Password123 | ADMIN   |
+| analyst  | Password123 | ANALYST |
+| viewer   | Password123 | VIEWER  |
 
 ---
 
@@ -51,6 +69,8 @@ GET /api/alerts
 
 * FAILED_LOGIN
 * SUCCESSFUL_LOGIN
+* PRIVILEGE_ESCALATION
+* CONNECTION_ATTEMPT
 
 ---
 
@@ -103,27 +123,108 @@ HIGH alert
 
 ---
 
+## Alert Features
+
+Every generated alert includes:
+
+* Severity
+* Risk Score
+* MITRE ATT&CK Technique
+* Description
+* Created Timestamp
+
+---
+
+## Analyst Workflow
+
+Authenticated analysts can:
+
+* Assign alerts
+* Update alert status
+* Add investigation notes
+
+Supported alert status values:
+
+* OPEN
+* INVESTIGATING
+* CLOSED
+
+---
+
+## Audit Logging
+
+The application records important security actions including:
+
+* User Registration
+* User Login
+* Alert Assignment
+* Alert Status Changes
+* Alert Notes Updates
+
+Audit logs are available through:
+
+```text
+GET /api/audit
+```
+
+(Admin only)
+
+---
+
 ## Current Features
 
+* JWT Authentication
+* Role-Based Access Control (RBAC)
+* Demo user seeding
 * Log ingestion
+* Log parsing
 * Event storage
-* Alert storage
+* Detection engine
+* Alert generation
 * Time-window correlation
 * Duplicate alert prevention
 * Username-aware correlation
 * Password spray detection
-* Fully documented source code
+* MITRE ATT&CK mapping
+* Risk scoring
+* Analyst workflow
+* Audit logging
+* Swagger / OpenAPI documentation
+* Docker support
 
 ---
 
-## Future Roadmap
+## API Testing
 
-* BRUTE_FORCE_AGGRESSIVE
-* PORT_SCAN detection
-* PRIVILEGE_ESCALATION
-* IMPOSSIBLE_TRAVEL
-* DATA_EXFILTRATION
-* MITRE ATT&CK mappings
-* Alert status workflow
-* Web dashboard
-* Docker deployment
+The backend has been fully tested using Swagger.
+
+Verified functionality includes:
+
+* User Registration
+* User Login
+* JWT Authentication
+* Log Ingestion
+* Event Creation
+* Alert Generation
+* Alert Assignment
+* Alert Status Updates
+* Alert Notes
+* Audit Logging
+
+---
+
+## Current Project Status
+
+**Backend Status:** ✅ Complete
+
+The backend is feature complete for the scope of the project.
+
+Current development is focused on:
+
+* React frontend
+* PostgreSQL migration
+* Architecture diagram
+* Application screenshots
+* Final portfolio polish
+
+
