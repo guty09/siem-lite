@@ -13,52 +13,31 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-/*
- * LogController is responsible for receiving log lines
- * through the REST API.
- */
 @RestController
 @RequestMapping("/api/logs")
 @Tag(name = "Logs", description = "Log ingestion and parsing")
 public class LogController {
 
-    /*
-     * Dependencies.
-     */
     private final LogParserService logParserService;
     private final SecurityEventRepository securityEventRepository;
     private final DetectionService detectionService;
 
-    /*
-     * Constructor injection.
-     */
     public LogController(LogParserService logParserService,
                          SecurityEventRepository securityEventRepository,
                          DetectionService detectionService) {
-
         this.logParserService = logParserService;
         this.securityEventRepository = securityEventRepository;
         this.detectionService = detectionService;
     }
 
-    /*
-     * Receives a single log line.
-     *
-     * POST /api/logs
-     */
     @Operation(summary = "Submit a single log")
     @PostMapping
     public SecurityEvent ingestLog(@RequestBody LogRequest request) {
 
-        /*
-         * Parse raw log into SecurityEvent.
-         */
-        SecurityEvent event =
-                logParserService.parseLog(request.getLogLine());
+        validateLogRequest(request);
 
-        /*
-         * Reject unsupported log formats.
-         */
+        SecurityEvent event = logParserService.parseLog(request.getLogLine());
+
         if (event == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -66,70 +45,52 @@ public class LogController {
             );
         }
 
-        /*
-         * Save event.
-         */
-        SecurityEvent savedEvent =
-                securityEventRepository.save(event);
+        SecurityEvent savedEvent = securityEventRepository.save(event);
 
-        /*
-         * Send event to correlation engine.
-         */
         detectionService.analyze(savedEvent);
 
-        /*
-         * Return stored event.
-         */
         return savedEvent;
     }
 
-    /*
-     * Receives multiple logs at once.
-     *
-     * POST /api/logs/bulk
-     */
     @Operation(summary = "Submit multiple logs")
     @PostMapping("/bulk")
-    public List<SecurityEvent> ingestBulkLogs(
-            @RequestBody List<LogRequest> requests) {
+    public List<SecurityEvent> ingestBulkLogs(@RequestBody List<LogRequest> requests) {
+
+        if (requests == null || requests.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "At least one log entry is required"
+            );
+        }
 
         return requests.stream()
                 .map(request -> {
+                    validateLogRequest(request);
 
-                    /*
-                     * Parse log line.
-                     */
-                    SecurityEvent event =
-                            logParserService.parseLog(request.getLogLine());
+                    SecurityEvent event = logParserService.parseLog(request.getLogLine());
 
-                    /*
-                     * Reject unsupported log formats.
-                     */
                     if (event == null) {
                         throw new ResponseStatusException(
                                 HttpStatus.BAD_REQUEST,
-                                "Unsupported log format: "
-                                        + request.getLogLine()
+                                "Unsupported log format: " + request.getLogLine()
                         );
                     }
 
-                    /*
-                     * Save event.
-                     */
-                    SecurityEvent savedEvent =
-                            securityEventRepository.save(event);
+                    SecurityEvent savedEvent = securityEventRepository.save(event);
 
-                    /*
-                     * Analyze event.
-                     */
                     detectionService.analyze(savedEvent);
 
-                    /*
-                     * Return saved event.
-                     */
                     return savedEvent;
-
                 })
                 .toList();
+    }
+
+    private void validateLogRequest(LogRequest request) {
+        if (request == null || request.getLogLine() == null || request.getLogLine().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "logLine is required"
+            );
+        }
     }
 }

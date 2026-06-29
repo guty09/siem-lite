@@ -1,5 +1,8 @@
 package com.guty.siemlite.controller;
 
+import com.guty.siemlite.audit.model.AuditAction;
+import com.guty.siemlite.audit.service.AuditLogService;
+import com.guty.siemlite.exception.AlertNotFoundException;
 import com.guty.siemlite.model.Alert;
 import com.guty.siemlite.repository.AlertRepository;
 import com.guty.siemlite.specification.AlertSpecification;
@@ -9,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import com.guty.siemlite.exception.AlertNotFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -20,9 +25,12 @@ import java.time.LocalDateTime;
 public class AlertController {
 
     private final AlertRepository alertRepository;
+    private final AuditLogService auditLogService;
 
-    public AlertController(AlertRepository alertRepository) {
+    public AlertController(AlertRepository alertRepository,
+                           AuditLogService auditLogService) {
         this.alertRepository = alertRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Operation(summary = "Retrieve alerts with optional filtering")
@@ -54,7 +62,8 @@ public class AlertController {
     @Operation(summary = "Assign analyst to an alert")
     @PutMapping("/{id}/assign")
     public Alert assignAnalyst(@PathVariable Long id,
-                               @RequestParam String analyst) {
+                               @RequestParam String analyst,
+                               Authentication authentication) {
 
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new AlertNotFoundException(id));
@@ -62,33 +71,54 @@ public class AlertController {
         alert.setAssignedAnalyst(analyst);
         alert.setUpdatedAt(LocalDateTime.now());
 
-        return alertRepository.save(alert);
+        Alert savedAlert = alertRepository.save(alert);
+
+        auditLogService.log(
+                AuditAction.ALERT_ASSIGNED,
+                getCurrentUsername(authentication),
+                "Alert " + id + " assigned to analyst: " + analyst
+        );
+
+        return savedAlert;
     }
 
     @Operation(summary = "Change alert status")
     @PutMapping("/{id}/status")
     public Alert updateStatus(@PathVariable Long id,
-                              @RequestParam String status) {
-
-        Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new AlertNotFoundException(id));
+                              @RequestParam String status,
+                              Authentication authentication) {
 
         if (!status.equals("OPEN")
                 && !status.equals("INVESTIGATING")
                 && !status.equals("CLOSED")) {
-            throw new IllegalArgumentException("Invalid status. Use OPEN, INVESTIGATING, or CLOSED.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid status. Use OPEN, INVESTIGATING, or CLOSED."
+            );
         }
+
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new AlertNotFoundException(id));
 
         alert.setStatus(status);
         alert.setUpdatedAt(LocalDateTime.now());
 
-        return alertRepository.save(alert);
+        Alert savedAlert = alertRepository.save(alert);
+
+        auditLogService.log(
+                AuditAction.ALERT_STATUS_CHANGED,
+                getCurrentUsername(authentication),
+                "Alert " + id + " status changed to: " + status
+        );
+
+        return savedAlert;
     }
 
     @Operation(summary = "Add investigation notes to an alert")
     @PutMapping("/{id}/notes")
     public Alert updateNotes(@PathVariable Long id,
-                             @RequestParam String note) {
+                             @RequestParam String note,
+                             Authentication authentication) {
 
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new AlertNotFoundException(id));
@@ -96,6 +126,22 @@ public class AlertController {
         alert.setNotes(note);
         alert.setUpdatedAt(LocalDateTime.now());
 
-        return alertRepository.save(alert);
+        Alert savedAlert = alertRepository.save(alert);
+
+        auditLogService.log(
+                AuditAction.ALERT_NOTES_UPDATED,
+                getCurrentUsername(authentication),
+                "Alert " + id + " notes updated"
+        );
+
+        return savedAlert;
+    }
+
+    private String getCurrentUsername(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return "SYSTEM";
+        }
+
+        return authentication.getName();
     }
 }

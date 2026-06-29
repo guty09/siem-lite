@@ -1,5 +1,7 @@
 package com.guty.siemlite.security.service;
 
+import com.guty.siemlite.audit.model.AuditAction;
+import com.guty.siemlite.audit.service.AuditLogService;
 import com.guty.siemlite.security.dto.LoginRequest;
 import com.guty.siemlite.security.dto.LoginResponse;
 import com.guty.siemlite.security.dto.RegisterRequest;
@@ -22,19 +24,22 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomUserDetailsService userDetailsService;
+    private final AuditLogService auditLogService;
 
     public AuthenticationService(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            CustomUserDetailsService userDetailsService) {
+            CustomUserDetailsService userDetailsService,
+            AuditLogService auditLogService) {
 
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userDetailsService = userDetailsService;
+        this.auditLogService = auditLogService;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -50,6 +55,12 @@ public class AuthenticationService {
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        auditLogService.log(
+                AuditAction.USER_LOGIN_SUCCESS,
+                user.getUsername(),
+                "User logged in successfully"
+        );
 
         return new LoginResponse(
                 token,
@@ -73,12 +84,19 @@ public class AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
+        auditLogService.log(
+                AuditAction.USER_REGISTERED,
+                savedUser.getUsername(),
+                "User registered with role: " + savedUser.getRole().name()
+        );
+
         return new UserResponse(
                 savedUser.getId(),
                 savedUser.getUsername(),
                 savedUser.getRole().name()
         );
     }
+
     public UserResponse getCurrentUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
