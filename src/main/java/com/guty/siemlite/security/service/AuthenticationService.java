@@ -79,4 +79,14 @@ public class AuthenticationService {
                 savedUser.getRole().name()
         );
     }
+    public UserResponse getCurrentUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getRole().name()
+        );
+    }
 }

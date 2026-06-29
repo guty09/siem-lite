@@ -5,6 +5,7 @@ import com.guty.siemlite.security.dto.LoginResponse;
 import com.guty.siemlite.security.dto.RegisterRequest;
 import com.guty.siemlite.security.dto.UserResponse;
 import com.guty.siemlite.security.service.AuthenticationService;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,5 +26,10 @@ public class AuthController {
     @PostMapping("/register")
     public UserResponse register(@RequestBody RegisterRequest request) {
         return authenticationService.register(request);
+    }
+
+    @GetMapping("/me")
+    public UserResponse me(Authentication authentication) {
+        return authenticationService.getCurrentUser(authentication.getName());
     }
 }
