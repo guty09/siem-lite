@@ -53,181 +53,222 @@ export default function AlertDetailsDrawer({
             slotProps={{
                 paper: {
                     sx: {
-                        width: 480,
+                        width: {
+                            xs: "100vw",
+                            sm: 480,
+                        },
+                        maxWidth: "100vw",
                         bgcolor: "#111827",
                         color: "#e5e7eb",
                         borderLeft: "1px solid #1f2937",
-                        p: 3,
+                        overflowX: "hidden",
+                        boxSizing: "border-box",
                     },
                 },
             }}
         >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                        {alertType}
-                    </Typography>
-
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        Alert ID #{alert.id}
-                    </Typography>
-                </Box>
-
-                <IconButton onClick={onClose} sx={{ color: "#e5e7eb" }}>
-                    <CloseIcon />
-                </IconButton>
-            </Box>
-
-            <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-                <Chip
-                    label={alert.severity ?? "UNKNOWN"}
-                    size="small"
-                    color={getSeverityColor(alert.severity)}
-                />
-
-                <Chip
-                    label={`Risk ${alert.riskScore ?? 0}`}
-                    size="small"
-                    variant="outlined"
-                    sx={{ color: "#e5e7eb", borderColor: "#374151" }}
-                />
-            </Stack>
-
-            <Divider sx={{ borderColor: "#1f2937", mb: 3 }} />
-
-            <Stack spacing={2.5}>
-                <Box>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        Status
-                    </Typography>
-
-                    <Select
-                        fullWidth
-                        size="small"
-                        value={alert.status ?? "OPEN"}
-                        onChange={(event) =>
-                            onStatusChange(alert.id, event.target.value)
-                        }
-                        sx={{
-                            mt: 0.5,
-                            color: "#e5e7eb",
-                            ".MuiOutlinedInput-notchedOutline": {
-                                borderColor: "#374151",
-                            },
-                            ".MuiSvgIcon-root": {
-                                color: "#e5e7eb",
-                            },
-                        }}
-                    >
-                        <MenuItem value="OPEN">OPEN</MenuItem>
-                        <MenuItem value="INVESTIGATING">INVESTIGATING</MenuItem>
-                        <MenuItem value="CLOSED">CLOSED</MenuItem>
-                    </Select>
-                </Box>
-
-                <Box>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        Assigned Analyst
-                    </Typography>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                        <Typography sx={{ flexGrow: 1, fontWeight: 700 }}>
-                            {alert.assignedAnalyst || "Unassigned"}
+            <Box
+                sx={{
+                    p: 3,
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                    overflowX: "hidden",
+                }}
+            >
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                            {alertType}
                         </Typography>
 
-                        <Button
-                            size="small"
-                            variant="outlined"
-                            onClick={() => onOpenAssign(alert)}
-                        >
-                            Assign
-                        </Button>
+                        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                            Alert ID #{alert.id}
+                        </Typography>
                     </Box>
+
+                    <IconButton onClick={onClose} sx={{ color: "#e5e7eb" }}>
+                        <CloseIcon />
+                    </IconButton>
                 </Box>
 
-                <PivotDetail
-                    label="MITRE Technique"
-                    value={alert.mitreTechnique || "N/A"}
-                    onClick={() =>
-                        alert.mitreTechnique &&
-                        onPivot("mitreTechnique", alert.mitreTechnique)
-                    }
-                />
-
-                <Detail label="MITRE Tactic" value={alert.mitreTactic || "N/A"} />
-
-                <PivotDetail
-                    label="Source IP"
-                    value={alert.sourceIp || "N/A"}
-                    onClick={() =>
-                        alert.sourceIp && onPivot("sourceIp", alert.sourceIp)
-                    }
-                />
-
-                <PivotDetail
-                    label="Username"
-                    value={alert.username || "N/A"}
-                    onClick={() =>
-                        alert.username && onPivot("username", alert.username)
-                    }
-                />
-
-                <Detail
-                    label="Created"
-                    value={
-                        alert.createdAt
-                            ? new Date(alert.createdAt).toLocaleString()
-                            : "N/A"
-                    }
-                />
-
-                <Divider sx={{ borderColor: "#1f2937" }} />
-
-                <Box>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        Description
-                    </Typography>
-                    <Typography sx={{ mt: 0.5 }}>
-                        {alert.description || "No description available."}
-                    </Typography>
-                </Box>
-
-                <Divider sx={{ borderColor: "#1f2937" }} />
-
-                <Box>
-                    <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                        Investigation Notes
-                    </Typography>
-
-                    <TextField
-                        fullWidth
-                        multiline
-                        minRows={5}
-                        value={notes}
-                        onChange={(event) => onNotesChange(event.target.value)}
-                        sx={{
-                            mt: 1,
-                            textarea: {
-                                color: "#e5e7eb",
-                            },
-                            ".MuiOutlinedInput-root": {
-                                bgcolor: "#0f172a",
-                            },
-                            ".MuiOutlinedInput-notchedOutline": {
-                                borderColor: "#374151",
-                            },
-                        }}
+                <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+                    <Chip
+                        label={alert.severity ?? "UNKNOWN"}
+                        size="small"
+                        color={getSeverityColor(alert.severity)}
                     />
 
-                    <Button
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                        onClick={onSaveNotes}
-                    >
-                        Save Notes
-                    </Button>
-                </Box>
-            </Stack>
+                    <Chip
+                        label={`Risk ${alert.riskScore ?? 0}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{ color: "#e5e7eb", borderColor: "#374151" }}
+                    />
+                </Stack>
+
+                <Divider sx={{ borderColor: "#1f2937", mb: 3 }} />
+
+                <Stack spacing={2.5}>
+                    <Box>
+                        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                            Status
+                        </Typography>
+
+                        <Select
+                            fullWidth
+                            size="small"
+                            value={alert.status ?? "OPEN"}
+                            onChange={(event) =>
+                                onStatusChange(alert.id, event.target.value)
+                            }
+                            sx={{
+                                mt: 0.5,
+                                color: "#e5e7eb",
+                                ".MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#374151",
+                                },
+                                ".MuiSvgIcon-root": {
+                                    color: "#e5e7eb",
+                                },
+                            }}
+                        >
+                            <MenuItem value="OPEN">OPEN</MenuItem>
+                            <MenuItem value="INVESTIGATING">INVESTIGATING</MenuItem>
+                            <MenuItem value="CLOSED">CLOSED</MenuItem>
+                        </Select>
+                    </Box>
+
+                    <Box>
+                        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                            Assigned Analyst
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                mt: 0.5,
+                            }}
+                        >
+                            <Typography sx={{ flexGrow: 1, fontWeight: 700 }}>
+                                {alert.assignedAnalyst || "Unassigned"}
+                            </Typography>
+
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => onOpenAssign(alert)}
+                            >
+                                Assign
+                            </Button>
+                        </Box>
+                    </Box>
+
+                    <PivotDetail
+                        label="MITRE Technique"
+                        value={alert.mitreTechnique || "N/A"}
+                        onClick={() =>
+                            alert.mitreTechnique &&
+                            onPivot("mitreTechnique", alert.mitreTechnique)
+                        }
+                    />
+
+                    <Detail
+                        label="MITRE Description"
+                        value={alert.mitreDescription || "N/A"}
+                    />
+
+                    <PivotDetail
+                        label="Source IP"
+                        value={alert.sourceIp || "N/A"}
+                        onClick={() =>
+                            alert.sourceIp && onPivot("sourceIp", alert.sourceIp)
+                        }
+                    />
+
+                    <PivotDetail
+                        label="Username"
+                        value={alert.username || "N/A"}
+                        onClick={() =>
+                            alert.username && onPivot("username", alert.username)
+                        }
+                    />
+
+                    <Detail
+                        label="Event Type"
+                        value={alert.eventType || "N/A"}
+                    />
+
+                    <Detail
+                        label="Created"
+                        value={
+                            alert.createdAt
+                                ? new Date(alert.createdAt).toLocaleString()
+                                : "N/A"
+                        }
+                    />
+
+                    <Divider sx={{ borderColor: "#1f2937" }} />
+
+                    <Box>
+                        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                            Detection Summary
+                        </Typography>
+
+                        <Typography sx={{ mt: 0.5 }}>
+                            {alert.message ||
+                                alert.description ||
+                                "No detection summary available."}
+                        </Typography>
+                    </Box>
+
+                    <Divider sx={{ borderColor: "#1f2937" }} />
+
+                    <Box sx={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                            Investigation Notes
+                        </Typography>
+
+                        <TextField
+                            fullWidth
+                            multiline
+                            minRows={4}
+                            value={notes}
+                            onChange={(event) => onNotesChange(event.target.value)}
+                            sx={{
+                                mt: 1,
+                                width: "100%",
+                                maxWidth: "100%",
+                                boxSizing: "border-box",
+                                "& .MuiOutlinedInput-root": {
+                                    bgcolor: "#0f172a",
+                                    color: "#e5e7eb",
+                                    width: "100%",
+                                    maxWidth: "100%",
+                                    boxSizing: "border-box",
+                                },
+                                "& textarea": {
+                                    color: "#e5e7eb",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#374151",
+                                },
+                            }}
+                        />
+
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 2 }}
+                            onClick={onSaveNotes}
+                        >
+                            Save Notes
+                        </Button>
+                    </Box>
+                </Stack>
+            </Box>
         </Drawer>
     );
 }
@@ -238,7 +279,10 @@ function Detail({ label, value }: { label: string; value: string | number }) {
             <Typography variant="caption" sx={{ color: "#9ca3af" }}>
                 {label}
             </Typography>
-            <Typography sx={{ fontWeight: 700 }}>{value}</Typography>
+
+            <Typography sx={{ fontWeight: 700 }}>
+                {value}
+            </Typography>
         </Box>
     );
 }

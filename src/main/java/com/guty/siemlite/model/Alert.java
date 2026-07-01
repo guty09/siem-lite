@@ -25,6 +25,12 @@ public class Alert {
 
     private String sourceIp;
 
+    // NEW
+    private String username;
+
+    // NEW
+    private String eventType;
+
     private String mitreTechnique;
 
     private String mitreDescription;
@@ -43,13 +49,14 @@ public class Alert {
     public Alert() {
     }
 
-    public Alert(LocalDateTime timestamp,
-                 String alertType,
-                 String severity,
-                 Integer riskScore,
-                 String message,
-                 String sourceIp) {
-
+    public Alert(
+            LocalDateTime timestamp,
+            String alertType,
+            String severity,
+            Integer riskScore,
+            String message,
+            String sourceIp
+    ) {
         this.timestamp = timestamp;
         this.alertType = alertType;
         this.severity = severity;
@@ -63,6 +70,10 @@ public class Alert {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
+
+    // -------------------------
+    // Getters
+    // -------------------------
 
     public Long getId() {
         return id;
@@ -90,6 +101,14 @@ public class Alert {
 
     public String getSourceIp() {
         return sourceIp;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEventType() {
+        return eventType;
     }
 
     public String getMitreTechnique() {
@@ -120,6 +139,10 @@ public class Alert {
         return updatedAt;
     }
 
+    // -------------------------
+    // Setters
+    // -------------------------
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -146,6 +169,14 @@ public class Alert {
 
     public void setSourceIp(String sourceIp) {
         this.sourceIp = sourceIp;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
     }
 
     public void setMitreTechnique(String mitreTechnique) {

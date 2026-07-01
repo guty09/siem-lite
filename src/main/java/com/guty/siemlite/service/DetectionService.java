@@ -42,9 +42,6 @@ public class DetectionService {
             detectPasswordSpray(event, fiveMinutesAgo);
         }
 
-        // rest of your existing code...
-
-
         if ("SUCCESSFUL_LOGIN".equals(event.getEventType())) {
             detectAccountCompromise(event, fiveMinutesAgo);
         }
@@ -58,8 +55,7 @@ public class DetectionService {
         }
     }
 
-    private void detectBruteForce(SecurityEvent event,
-                                  LocalDateTime fiveMinutesAgo) {
+    private void detectBruteForce(SecurityEvent event, LocalDateTime fiveMinutesAgo) {
 
         boolean aggressiveExists =
                 alertRepository.existsBySourceIpAndAlertType(
@@ -97,13 +93,13 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
     }
 
-    private void detectAccountCompromise(SecurityEvent event,
-                                         LocalDateTime fiveMinutesAgo) {
+    private void detectAccountCompromise(SecurityEvent event, LocalDateTime fiveMinutesAgo) {
 
         List<SecurityEvent> failedLogins =
                 securityEventRepository
@@ -134,13 +130,13 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
     }
 
-    private void detectPasswordSpray(SecurityEvent event,
-                                     LocalDateTime fiveMinutesAgo) {
+    private void detectPasswordSpray(SecurityEvent event, LocalDateTime fiveMinutesAgo) {
 
         List<SecurityEvent> failedLogins =
                 securityEventRepository.findBySourceIpAndEventTypeAndTimestampAfter(
@@ -175,6 +171,7 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
@@ -210,6 +207,7 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
@@ -251,13 +249,13 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
     }
 
-    private void detectPrivilegeEscalation(SecurityEvent event,
-                                           LocalDateTime fiveMinutesAgo) {
+    private void detectPrivilegeEscalation(SecurityEvent event, LocalDateTime fiveMinutesAgo) {
 
         List<SecurityEvent> failedLogins =
                 securityEventRepository
@@ -299,10 +297,12 @@ public class DetectionService {
                         event.getSourceIp()
                 );
 
+                enrichAlert(alert, event);
                 saveAlertWithMitre(alert);
             }
         }
     }
+
     private void detectIocMatch(SecurityEvent event) {
 
         boolean knownMaliciousIp =
@@ -332,8 +332,15 @@ public class DetectionService {
                 event.getSourceIp()
         );
 
+        enrichAlert(alert, event);
         saveAlertWithMitre(alert);
     }
+
+    private void enrichAlert(Alert alert, SecurityEvent event) {
+        alert.setUsername(event.getUsername());
+        alert.setEventType(event.getEventType());
+    }
+
     private void saveAlertWithMitre(Alert alert) {
 
         addMitreMetadata(alert);

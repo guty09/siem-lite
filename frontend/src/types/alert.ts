@@ -5,12 +5,14 @@ export interface Alert {
     severity: string;
     riskScore?: number;
     mitreTechnique?: string;
-    mitreTactic?: string;
+    mitreDescription?: string;
     status?: string;
     assignedAnalyst?: string;
     createdAt?: string;
     sourceIp?: string;
     username?: string;
+    eventType?: string;
+    message?: string;
     description?: string;
     notes?: string;
 }
