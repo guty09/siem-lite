@@ -10,15 +10,18 @@ import {
     Stack,
     TextField,
     Typography,
+    Paper,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
 import SearchIcon from "@mui/icons-material/Search";
 import type { Alert } from "../types/alert";
+import type { SecurityEvent } from "../types/event";
 
 interface Props {
     open: boolean;
     alert: Alert | null;
+    relatedEvents: SecurityEvent[];
     notes: string;
     onNotesChange: (value: string) => void;
     onClose: () => void;
@@ -31,6 +34,7 @@ interface Props {
 export default function AlertDetailsDrawer({
                                                open,
                                                alert,
+                                               relatedEvents,
                                                notes,
                                                onNotesChange,
                                                onClose,
@@ -53,10 +57,7 @@ export default function AlertDetailsDrawer({
             slotProps={{
                 paper: {
                     sx: {
-                        width: {
-                            xs: "100vw",
-                            sm: 480,
-                        },
+                        width: { xs: "100vw", sm: 480 },
                         maxWidth: "100vw",
                         bgcolor: "#111827",
                         color: "#e5e7eb",
@@ -67,15 +68,7 @@ export default function AlertDetailsDrawer({
                 },
             }}
         >
-            <Box
-                sx={{
-                    p: 3,
-                    width: "100%",
-                    maxWidth: "100%",
-                    boxSizing: "border-box",
-                    overflowX: "hidden",
-                }}
-            >
+            <Box sx={{ p: 3, width: "100%", boxSizing: "border-box", overflowX: "hidden" }}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                         <Typography variant="h6" sx={{ fontWeight: 900 }}>
@@ -119,9 +112,7 @@ export default function AlertDetailsDrawer({
                             fullWidth
                             size="small"
                             value={alert.status ?? "OPEN"}
-                            onChange={(event) =>
-                                onStatusChange(alert.id, event.target.value)
-                            }
+                            onChange={(event) => onStatusChange(alert.id, event.target.value)}
                             sx={{
                                 mt: 0.5,
                                 color: "#e5e7eb",
@@ -144,23 +135,12 @@ export default function AlertDetailsDrawer({
                             Assigned Analyst
                         </Typography>
 
-                        <Box
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                mt: 0.5,
-                            }}
-                        >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
                             <Typography sx={{ flexGrow: 1, fontWeight: 700 }}>
                                 {alert.assignedAnalyst || "Unassigned"}
                             </Typography>
 
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => onOpenAssign(alert)}
-                            >
+                            <Button size="small" variant="outlined" onClick={() => onOpenAssign(alert)}>
                                 Assign
                             </Button>
                         </Box>
@@ -170,44 +150,29 @@ export default function AlertDetailsDrawer({
                         label="MITRE Technique"
                         value={alert.mitreTechnique || "N/A"}
                         onClick={() =>
-                            alert.mitreTechnique &&
-                            onPivot("mitreTechnique", alert.mitreTechnique)
+                            alert.mitreTechnique && onPivot("mitreTechnique", alert.mitreTechnique)
                         }
                     />
 
-                    <Detail
-                        label="MITRE Description"
-                        value={alert.mitreDescription || "N/A"}
-                    />
+                    <Detail label="MITRE Description" value={alert.mitreDescription || "N/A"} />
 
                     <PivotDetail
                         label="Source IP"
                         value={alert.sourceIp || "N/A"}
-                        onClick={() =>
-                            alert.sourceIp && onPivot("sourceIp", alert.sourceIp)
-                        }
+                        onClick={() => alert.sourceIp && onPivot("sourceIp", alert.sourceIp)}
                     />
 
                     <PivotDetail
                         label="Username"
                         value={alert.username || "N/A"}
-                        onClick={() =>
-                            alert.username && onPivot("username", alert.username)
-                        }
+                        onClick={() => alert.username && onPivot("username", alert.username)}
                     />
 
-                    <Detail
-                        label="Event Type"
-                        value={alert.eventType || "N/A"}
-                    />
+                    <Detail label="Event Type" value={alert.eventType || "N/A"} />
 
                     <Detail
                         label="Created"
-                        value={
-                            alert.createdAt
-                                ? new Date(alert.createdAt).toLocaleString()
-                                : "N/A"
-                        }
+                        value={alert.createdAt ? new Date(alert.createdAt).toLocaleString() : "N/A"}
                     />
 
                     <Divider sx={{ borderColor: "#1f2937" }} />
@@ -218,15 +183,79 @@ export default function AlertDetailsDrawer({
                         </Typography>
 
                         <Typography sx={{ mt: 0.5 }}>
-                            {alert.message ||
-                                alert.description ||
-                                "No detection summary available."}
+                            {alert.message || alert.description || "No detection summary available."}
                         </Typography>
                     </Box>
 
                     <Divider sx={{ borderColor: "#1f2937" }} />
 
-                    <Box sx={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                    <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                            Related Events / Evidence
+                        </Typography>
+
+                        {relatedEvents.length === 0 ? (
+                            <Typography sx={{ mt: 1, color: "#9ca3af" }}>
+                                No related events found.
+                            </Typography>
+                        ) : (
+                            <Stack spacing={2} sx={{ mt: 2 }}>
+                                {relatedEvents.map((event, index) => (
+                                    <Paper
+                                        key={`${event.id ?? index}-${event.timestamp ?? index}`}
+                                        variant="outlined"
+                                        sx={{
+                                            p: 2,
+                                            bgcolor: "#0f172a",
+                                            borderColor: "#374151",
+                                            color: "#e5e7eb",
+                                            borderRadius: 2,
+                                        }}
+                                    >
+                                        <Stack spacing={1}>
+                                            <Chip
+                                                label={event.eventType || "UNKNOWN_EVENT"}
+                                                size="small"
+                                                sx={{
+                                                    alignSelf: "flex-start",
+                                                    bgcolor: "#1d4ed8",
+                                                    color: "#ffffff",
+                                                    fontWeight: 700,
+                                                }}
+                                            />
+
+                                            <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+                                                {event.timestamp
+                                                    ? new Date(event.timestamp).toLocaleString()
+                                                    : "No timestamp available"}
+                                            </Typography>
+
+                                            <Typography
+                                                sx={{
+                                                    fontFamily: "monospace",
+                                                    fontSize: "0.875rem",
+                                                    whiteSpace: "pre-wrap",
+                                                    overflowWrap: "anywhere",
+                                                    color: "#d1d5db",
+                                                }}
+                                            >
+                                                {event.rawLog || "No raw log available."}
+                                            </Typography>
+
+                                            <Divider sx={{ borderColor: "#1f2937" }} />
+
+                                            <Detail label="Source IP" value={event.sourceIp || "N/A"} />
+                                            <Detail label="Username" value={event.username || "N/A"} />
+                                        </Stack>
+                                    </Paper>
+                                ))}
+                            </Stack>
+                        )}
+                    </Box>
+
+                    <Divider sx={{ borderColor: "#1f2937" }} />
+
+                    <Box sx={{ width: "100%", boxSizing: "border-box" }}>
                         <Typography variant="caption" sx={{ color: "#9ca3af" }}>
                             Investigation Notes
                         </Typography>
@@ -239,15 +268,9 @@ export default function AlertDetailsDrawer({
                             onChange={(event) => onNotesChange(event.target.value)}
                             sx={{
                                 mt: 1,
-                                width: "100%",
-                                maxWidth: "100%",
-                                boxSizing: "border-box",
                                 "& .MuiOutlinedInput-root": {
                                     bgcolor: "#0f172a",
                                     color: "#e5e7eb",
-                                    width: "100%",
-                                    maxWidth: "100%",
-                                    boxSizing: "border-box",
                                 },
                                 "& textarea": {
                                     color: "#e5e7eb",
@@ -258,12 +281,7 @@ export default function AlertDetailsDrawer({
                             }}
                         />
 
-                        <Button
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 2 }}
-                            onClick={onSaveNotes}
-                        >
+                        <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={onSaveNotes}>
                             Save Notes
                         </Button>
                     </Box>
@@ -280,9 +298,7 @@ function Detail({ label, value }: { label: string; value: string | number }) {
                 {label}
             </Typography>
 
-            <Typography sx={{ fontWeight: 700 }}>
-                {value}
-            </Typography>
+            <Typography sx={{ fontWeight: 700 }}>{value}</Typography>
         </Box>
     );
 }
@@ -305,16 +321,9 @@ function PivotDetail({
             </Typography>
 
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography sx={{ flexGrow: 1, fontWeight: 700 }}>
-                    {value}
-                </Typography>
+                <Typography sx={{ flexGrow: 1, fontWeight: 700 }}>{value}</Typography>
 
-                <IconButton
-                    size="small"
-                    disabled={disabled}
-                    onClick={onClick}
-                    sx={{ color: "#93c5fd" }}
-                >
+                <IconButton size="small" disabled={disabled} onClick={onClick} sx={{ color: "#93c5fd" }}>
                     <SearchIcon fontSize="small" />
                 </IconButton>
             </Box>

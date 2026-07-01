@@ -1,11 +1,11 @@
 package com.guty.siemlite.repository;
 
+import com.guty.siemlite.dto.TopSourceIp;
+import com.guty.siemlite.dto.TopUsername;
 import com.guty.siemlite.model.SecurityEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import com.guty.siemlite.dto.TopSourceIp;
 import org.springframework.data.jpa.repository.Query;
-import com.guty.siemlite.dto.TopUsername;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -67,6 +67,23 @@ public interface SecurityEventRepository extends
             LocalDateTime timestamp);
 
     /**
+     * Finds security events matching a source IP address, username,
+     * and event type.
+     *
+     * <p>Used by alert investigations to retrieve the evidence that
+     * triggered an alert.</p>
+     *
+     * @param sourceIp source IP address associated with the alert
+     * @param username username associated with the alert
+     * @param eventType event type associated with the alert
+     * @return matching security events
+     */
+    List<SecurityEvent> findBySourceIpAndUsernameAndEventType(
+            String sourceIp,
+            String username,
+            String eventType);
+
+    /**
      * Counts the total number of security events matching a specific event type.
      *
      * @param eventType event type to count
@@ -84,6 +101,7 @@ public interface SecurityEventRepository extends
      * @return number of security events after the specified timestamp
      */
     long countByTimestampAfter(LocalDateTime timestamp);
+
     /**
      * Counts security events that occurred within a timestamp range.
      *
@@ -97,6 +115,7 @@ public interface SecurityEventRepository extends
     long countByTimestampGreaterThanEqualAndTimestampLessThan(
             LocalDateTime start,
             LocalDateTime end);
+
     /**
      * Finds the most active source IP addresses based on total security event count.
      *
@@ -113,6 +132,7 @@ public interface SecurityEventRepository extends
             ORDER BY COUNT(e) DESC
             """)
     List<TopSourceIp> findTopSourceIps();
+
     /**
      * Finds the most active usernames based on total security event count.
      *

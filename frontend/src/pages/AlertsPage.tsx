@@ -23,12 +23,14 @@ import {
 import {
     assignAlert,
     getAlerts,
+    getRelatedEvents,
     updateAlertNotes,
     updateAlertStatus,
 } from "../services/alerts";
 
 import AlertDetailsDrawer from "../components/AlertDetailsDrawer";
 import type { Alert } from "../types/alert";
+import type { SecurityEvent } from "../types/event";
 
 function getSeverityColor(
     severity: string
@@ -55,6 +57,7 @@ export default function AlertsPage() {
     const [error, setError] = useState("");
 
     const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+    const [relatedEvents, setRelatedEvents] = useState<SecurityEvent[]>([]);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [assignOpen, setAssignOpen] = useState(false);
 
@@ -93,14 +96,23 @@ export default function AlertsPage() {
         await loadAlerts();
     }
 
-    function openDrawer(alert: Alert) {
+    async function openDrawer(alert: Alert) {
         setSelectedAlert(alert);
         setNotes(alert.notes ?? "");
+        setRelatedEvents([]);
         setDrawerOpen(true);
+
+        try {
+            const events = await getRelatedEvents(alert.id);
+            setRelatedEvents(events);
+        } catch {
+            setRelatedEvents([]);
+        }
     }
 
     function closeDrawer() {
         setDrawerOpen(false);
+        setRelatedEvents([]);
     }
 
     function openAssignDialog(alert: Alert) {
@@ -252,6 +264,7 @@ export default function AlertsPage() {
             <AlertDetailsDrawer
                 open={drawerOpen}
                 alert={selectedAlert}
+                relatedEvents={relatedEvents}
                 notes={notes}
                 onNotesChange={setNotes}
                 onClose={closeDrawer}

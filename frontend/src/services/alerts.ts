@@ -1,5 +1,6 @@
 import api from "./api";
 import type { Alert } from "../types/alert";
+import type { SecurityEvent } from "../types/event";
 
 export async function getAlerts(): Promise<Alert[]> {
     const response = await api.get("/alerts");
@@ -15,6 +16,16 @@ export async function getAlerts(): Promise<Alert[]> {
 
     if (data && Array.isArray(data.alerts)) {
         return data.alerts;
+    }
+
+    return [];
+}
+
+export async function getRelatedEvents(alertId: number): Promise<SecurityEvent[]> {
+    const response = await api.get(`/alerts/${alertId}/related-events`);
+
+    if (Array.isArray(response.data)) {
+        return response.data;
     }
 
     return [];

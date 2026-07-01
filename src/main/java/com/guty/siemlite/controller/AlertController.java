@@ -4,7 +4,9 @@ import com.guty.siemlite.audit.model.AuditAction;
 import com.guty.siemlite.audit.service.AuditLogService;
 import com.guty.siemlite.exception.AlertNotFoundException;
 import com.guty.siemlite.model.Alert;
+import com.guty.siemlite.model.SecurityEvent;
 import com.guty.siemlite.repository.AlertRepository;
+import com.guty.siemlite.repository.SecurityEventRepository;
 import com.guty.siemlite.specification.AlertSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/alerts")
@@ -25,11 +28,14 @@ import java.time.LocalDateTime;
 public class AlertController {
 
     private final AlertRepository alertRepository;
+    private final SecurityEventRepository securityEventRepository;
     private final AuditLogService auditLogService;
 
     public AlertController(AlertRepository alertRepository,
+                           SecurityEventRepository securityEventRepository,
                            AuditLogService auditLogService) {
         this.alertRepository = alertRepository;
+        this.securityEventRepository = securityEventRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -56,6 +62,19 @@ public class AlertController {
                         size,
                         Sort.by(Sort.Direction.DESC, "riskScore")
                 )
+        );
+    }
+
+    @Operation(summary = "Retrieve related security events for an alert")
+    @GetMapping("/{id}/related-events")
+    public List<SecurityEvent> getRelatedEvents(@PathVariable Long id) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new AlertNotFoundException(id));
+
+        return securityEventRepository.findBySourceIpAndUsernameAndEventType(
+                alert.getSourceIp(),
+                alert.getUsername(),
+                alert.getEventType()
         );
     }
 
