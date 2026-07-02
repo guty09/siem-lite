@@ -8,6 +8,7 @@ import EventsPage from "./pages/EventsPage";
 import IocsPage from "./pages/IocsPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import SettingsPage from "./pages/SettingsPage";
+import IncidentsPage from "./pages/IncidentsPage";
 
 export default function App() {
     return (
@@ -48,6 +49,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <IocsPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/incidents"
+                element={
+                    <ProtectedRoute>
+                        <IncidentsPage />
                     </ProtectedRoute>
                 }
             />

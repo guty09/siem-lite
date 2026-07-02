@@ -18,6 +18,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import StorageIcon from "@mui/icons-material/Storage";
 import SecurityIcon from "@mui/icons-material/Security";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import HistoryIcon from "@mui/icons-material/History";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HomeIcon from "@mui/icons-material/Home";
@@ -143,6 +144,17 @@ export default function AppLayout({ children, title }: Props) {
                             <SecurityIcon />
                         </ListItemIcon>
                         <ListItemText primary="Threat Intelligence" />
+                    </ListItemButton>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/incidents"
+                        selected={location.pathname === "/incidents"}
+                    >
+                        <ListItemIcon sx={{ color: "#fb7185" }}>
+                            <ReportProblemIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Incidents" />
                     </ListItemButton>
 
                     <ListItemButton
