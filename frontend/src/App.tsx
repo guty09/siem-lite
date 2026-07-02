@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import AlertsPage from "./pages/AlertsPage";
 import EventsPage from "./pages/EventsPage";
+import IocsPage from "./pages/IocsPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -38,6 +39,15 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <EventsPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/iocs"
+                element={
+                    <ProtectedRoute>
+                        <IocsPage />
                     </ProtectedRoute>
                 }
             />

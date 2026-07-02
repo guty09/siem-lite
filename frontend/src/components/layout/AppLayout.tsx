@@ -17,6 +17,7 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import StorageIcon from "@mui/icons-material/Storage";
+import SecurityIcon from "@mui/icons-material/Security";
 import HistoryIcon from "@mui/icons-material/History";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HomeIcon from "@mui/icons-material/Home";
@@ -131,6 +132,17 @@ export default function AppLayout({ children, title }: Props) {
                             <StorageIcon />
                         </ListItemIcon>
                         <ListItemText primary="Events" />
+                    </ListItemButton>
+
+                    <ListItemButton
+                        component={Link}
+                        to="/iocs"
+                        selected={location.pathname === "/iocs"}
+                    >
+                        <ListItemIcon sx={{ color: "#fbbf24" }}>
+                            <SecurityIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Threat Intelligence" />
                     </ListItemButton>
 
                     <ListItemButton
